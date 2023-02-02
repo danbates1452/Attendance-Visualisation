@@ -1,7 +1,7 @@
 # import data from excel, sanitize and ready it to be inserted into the database
 # todo: allow a user to upload it within the application then insert it in
 import pandas as pd
-from sqlalchemy import insert, update
+from sqlalchemy import insert, update, MetaData
 from datetime import datetime
 def excel_to_db(filename, db):
     # todo: check if file exists - throw exception if not, or if there is an issue in reading
@@ -9,7 +9,12 @@ def excel_to_db(filename, db):
     # todo: Validation
     df.dropna(how='all')  # drop any fully empty rows
 
-    studentTable, SnapshotTable, CourseTable = []
+    meta = MetaData(db)
+    tables = meta.tables
+    student_table = tables['Student']
+    snapshot_table = tables['Snapshot']
+    course_table = tables['Course']
+
 
     for index, row in df.iterrows():
         # get all data regardless of table
@@ -40,15 +45,19 @@ def excel_to_db(filename, db):
         # row index 24 is a percentage
         academic_advising_last = row[25] #Last Attended (AA)
 
+        # todo: create course and snapshot entries first so they can be added to student
+
         # todo: add checks if entries already exist
         if db.execute('SELECT Student FROM Student WHERE Student.id = ?', id):
             # Student already exists
-            # So we update the existing student
+            # So we update the existing student's
+
             studentStatement = (
-                update('Student').
-                where().
-                values()
+                update(student_table).
+                values(is_undergraduate=is_undergraduate, course=course, registration_status=registration_status).
+                where(id=id)
             )
+
         else:
             # Student does not exist
             # So we insert a new row
@@ -61,7 +70,6 @@ def excel_to_db(filename, db):
 
         db.session.add()
         db.session.commit()
-
 
         studentStatement = (
             insert('student'). # todo: how to add snapshot child table?

@@ -1,7 +1,6 @@
 #Database Handling
 from flask_sqlalchemy import SQLAlchemy
 
-
 def setup_database(app, db_string):
     metadata_object = SQLAlchemy.MetaData()
 
