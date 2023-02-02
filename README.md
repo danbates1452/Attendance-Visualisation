@@ -1,2 +1,7 @@
-# attendance-visualisation
-Final Year Project at the University of Sussex on Attendance Monitoring data visualisation
+# Attendance-Visualisation
+My Dissertation Project on *Attendance Monitoring Visualisation*, at the University of Sussex (2023).
+
+## Motivations
+As university attendance rates continue to soar, the number of staff checking up on student attendance has stayed roughly the same. Sussex experiences this just as much as other universities, and as such, there is space/need for more powerful tool to visualise and filter attendance data.
+
+### **(WIP!)**

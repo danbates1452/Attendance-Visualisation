@@ -4,6 +4,7 @@ import pandas as pd
 from sqlalchemy import insert, update
 from datetime import datetime
 def excel_to_db(filename, db):
+    # todo: check if file exists - throw exception if not, or if there is an issue in reading
     df = pd.read_excel(filename)
     # todo: Validation
     df.dropna(how='all')  # drop any fully empty rows
@@ -57,9 +58,6 @@ def excel_to_db(filename, db):
 
                 )
             )
-
-
-
 
         db.session.add()
         db.session.commit()

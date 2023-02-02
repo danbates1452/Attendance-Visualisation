@@ -1,9 +1,10 @@
+# Libraries
 import flask
-from flask import Flask, render_template, request, flash
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request
 import yaml
-
+# Project Modules
 import database_handling
+import excel_import
 
 # environment_type = 'dev'
 environment_type = 'dev_service'
@@ -20,9 +21,8 @@ def get_config_list(path):
 
 config = get_config_list('./config.yaml')
 
-if isinstance(config, Exception):  # if config is not loaded successfully... run the app
+if isinstance(config, Exception):  # if config is not loaded successfully... exit with exception
     import sys
-
     sys.exit('Configuration Error:\n' + str(config))
 
 app = Flask(__name__)
@@ -33,17 +33,6 @@ for key, value in config['APP']:  # loop through and add base configurations for
 if config['APP' + environment_type.upper()]:  # if environment type has app config
     for key, value in config['APP' + environment_type.upper()]:  # loop through and add environment configurations
         app.config[key] = value
-
-# dbpass = '5eVc9mFz4giY72'
-# secret = ''
-#
-# app = Flask(__name__)
-# app.secret_key = 'secret string'
-#
-# # Database Config
-# db_string = 'postgresql://postgres:' + dbpass + '@localhost/flasksql'
-# app.config['SQLALCHEMY_DATABASE_URI'] = db_string
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Database Setup
 db = database_handling.setup_database(app, app.config['SQLALCHEMY_DATABASE_URI'])
@@ -64,11 +53,13 @@ def home():
 @app.route('import')
 def import_handler():
     # todo: take in a file for import via react
-    e
-    pass
+
+    filepath = '../sample_data.xlsx'
+    excel_import.excel_to_db(filepath, db)
+
 
 @app.route('/login')
-def loginHandler():
+def login_handler():
     pass
 
 
