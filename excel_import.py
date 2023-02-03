@@ -46,34 +46,9 @@ def excel_to_db(filename, db):
         academic_advising_last = row[25] #Last Attended (AA)
 
         # todo: create course and snapshot entries first so they can be added to student
-
-        # todo: add checks if entries already exist
-        if db.execute('SELECT Student FROM Student WHERE Student.id = ?', id):
-            # Student already exists
-            # So we update the existing student's
-
-            studentStatement = (
-                update(student_table).
-                values(is_undergraduate=is_undergraduate, course=course, registration_status=registration_status).
-                where(id=id)
-            )
-
-        else:
-            # Student does not exist
-            # So we insert a new row
-            studentStatement = (
-                insert('Student').
-                values(
-
-                )
-            )
-
-        db.session.add()
-        db.session.commit()
-
-        studentStatement = (
-            insert('student'). # todo: how to add snapshot child table?
-            values(id=id, is_undergraduate=is_undergraduate, course_year=course_year, course_year=code, snapshots=)
+        courseStatement = (
+            insert('course').
+            values(code=code, title=title)
         )
 
         snapshotStatement = (
@@ -100,10 +75,24 @@ def excel_to_db(filename, db):
                 academic_advising_last=academic_advising_last,
             )
         )
+        # todo: add checks if entries already exist
+        if db.execute('SELECT Student FROM Student WHERE Student.id = ?', id):
+            # Student already exists
+            # So we update the existing student's
 
-        courseStatement = (
-            insert('course').
-            values(code=code, title=title)
-        )
+            studentStatement = (
+                update(student_table).
+                values(is_undergraduate=is_undergraduate, course=course, registration_status=registration_status).
+                where(id=id)
+            )
 
-        
+        else:
+            # Student does not exist
+            # So we insert a new row
+            studentStatement = (
+                insert('Student').
+                values(id=id, is_undergraduate=is_undergraduate, course_year=course_year, course=, snapshots=)
+            )
+
+        db.session.add()
+        db.session.commit()
