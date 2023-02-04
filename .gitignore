@@ -3,3 +3,4 @@ config.yaml
 venv
 Scripts
 __pycache__
+sample_data.xlsx

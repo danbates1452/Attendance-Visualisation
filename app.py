@@ -5,14 +5,13 @@ import flask
 from flask import Flask, render_template, request
 import yaml
 from flask_sqlalchemy import SQLAlchemy
-
-from sqlalchemy import Column, Integer, Boolean, String, Date, ForeignKey, ForeignKeyConstraint, Table
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, ForeignKey
+from sqlalchemy.orm import relationship
 import os
 
 # Project Modules
-import excel_import
 import pages
+from helper_methods import *
 
 # environment_type = 'dev'
 environment_type = 'dev_service'
@@ -20,9 +19,7 @@ environment_type = 'dev_service'
 
 
 def get_config_list(path):
-    working_directory = os.path.dirname(__file__)
-    path = os.path.join(working_directory, path)
-    with open(path, 'r') as stream:
+    with open(get_absolute_path(path), 'r') as stream:
         try:
             return yaml.safe_load(stream)
         except yaml.YAMLError as exception:
@@ -62,11 +59,8 @@ def login_get():
 # Database Setup
 db = SQLAlchemy(app)
 
-with app.app_context():
-    db.create_all()
-
-
 class Snapshot(db.Model):
+    __tablename__ = "Snapshot"
     student_id = Column(Integer, ForeignKey("Student.id"), primary_key=True, nullable=False)
     date = Column(Date, primary_key=True, nullable=False)
     registration_status = Column(String)
@@ -91,7 +85,7 @@ class Snapshot(db.Model):
     academic_advising_last = Column(Integer)  # Date of last Academic Advising session attended
 
     # Relationships
-    student = relationship("Student", back_populates = "Snapshots")
+    # student = relationship("Student", back_populates = "snapshots")
 
 
 class Course(db.Model):
@@ -102,15 +96,18 @@ class Course(db.Model):
 
 class Student(db.Model):
     __tablename__ = 'Student'
-    id = Column(Integer, primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
+    id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
     is_undergraduate = Column(Boolean, nullable=False) # True = Undergraduate, False = Postgraduate Taught
     stage = Column(Integer, nullable=False)
-    course_code = Column(Integer, ForeignKey(Course.code), nullable=False) # course_code, One-To-One
+    course_code = Column(String, ForeignKey(Course.code), nullable=False) # course_code, One-To-One
     # Relationships
-    snapshots = relationship('Snapshot', back_populates = 'Student')  # snapshots, One-To-Many
+    snapshots = relationship('Snapshot', backref = 'Student')  # snapshots, One-To-Many
     course = relationship('Course', foreign_keys='Student.course_code')
 
+with app.app_context():
+    db.create_all()
+    from excel_import import excel_to_db
+    excel_to_db('./sample_data.xlsx', db)
 
 if __name__ == '__main__':
-    # db.create_all()
     app.run()
