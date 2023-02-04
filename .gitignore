@@ -2,4 +2,4 @@ config.yaml
 .idea
 venv
 Scripts
-
+__pycache__

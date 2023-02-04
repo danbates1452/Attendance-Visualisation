@@ -1,27 +1,27 @@
 # import data from excel, sanitize and ready it to be inserted into the database
 # todo: allow a user to upload it within the application then insert it in
+# external imports
 import pandas as pd
 from sqlalchemy import insert, update, MetaData
 from datetime import datetime
+# local imports
+from app import Student, Snapshot, Course
+
+# NOTE: You must upload only ONE Snapshot at a time, as there is no way to tell them apart,
+# and they will be treated as one snapshot, ignoring earlier entries if there is a later entry for the same
+# student
 def excel_to_db(filename, db):
     # todo: check if file exists - throw exception if not, or if there is an issue in reading
     df = pd.read_excel(filename)
     # todo: Validation
     df.dropna(how='all')  # drop any fully empty rows
 
-    meta = MetaData(db)
-    tables = meta.tables
-    student_table = tables['Student']
-    snapshot_table = tables['Snapshot']
-    course_table = tables['Course']
-
-
     for index, row in df.iterrows():
         # get all data regardless of table
         # name = row[index] #Original Name
         id = row[0] #User
         is_undergraduate = True if row[1] == "UG" else False #Level of Study
-        course_year = row[2] #Year of Course
+        stage = row[2] #Year of Course
         registration_status = row[3] #Registration Status
         title = row[4] #Course Title
         code = row[5] #Course Code
@@ -45,28 +45,53 @@ def excel_to_db(filename, db):
         # row index 24 is a percentage
         academic_advising_last = row[25] #Last Attended (AA)
 
-        # todo: create course and snapshot entries first so they can be added to student
-        courseStatement = (
-            insert('course').
-            values(code=code, title=title)
-        )
+        date = datetime.now() # insertion date & time, for keeping track of snapshots
 
-        snapshotStatement = (
-            insert('snapshot').
-            values(
+        # Check if student exists already before either updating or creating anew
+        if db.session.query(Student).filter(id=id).first() is not None:
+            # Student already exists -> update existing student
+            updated_student = db.session.query(Student).filter(id=id).first()
+            updated_student.is_undergraduate = is_undergraduate
+            updated_student.stage = stage
+            updated_student.course_code = code
+
+            db.session.add(updated_student)
+        else:
+            # Student does not exist -> create new student
+            new_student = Student(
+                id=id,
+                is_undergraduate=is_undergraduate,
+                stage=stage,
+                course_code=code
+            )
+            db.session.add(new_student)
+
+        # We do not update course or snapshot as this would erase information we want to keep
+
+        # if course does not already exist
+        if db.session.query(Course.code).filter_by(code=code, title=title).first() is None:
+            new_course = Course(code=code, title=title)
+            db.session.add(new_course)
+
+        # if snapshot does not already exist
+        if db.session.query(Snapshot.student_id).filter_by(student_id=id, date=date).first() is None:
+            new_snapshot = Snapshot(
                 student_id=id,
-                date=datetime.now(),
+                date=date,
                 registration_status=registration_status,
+
                 teaching_sessions=teaching_sessions,
                 teaching_attendance=teaching_attendance,
                 teaching_explained_absence=teaching_explained_absence,
                 teaching_absence=teaching_absence,
                 teaching_last=teaching_last,
+
                 assessments=assessments,
                 assessment_submission=assessment_submission,
                 assessment_explained_non_submission=assessment_explained_non_submission,
                 assessment_non_submission=assessment_non_submission,
                 assessment_in_late_period=assessment_in_late_period,
+
                 academic_advising_sessions=academic_advising_sessions,
                 academic_advising_attendance=academic_advising_attendance,
                 academic_advising_explained_absence=academic_advising_explained_absence,
@@ -74,25 +99,8 @@ def excel_to_db(filename, db):
                 academic_advising_not_recorded=academic_advising_not_recorded,
                 academic_advising_last=academic_advising_last,
             )
-        )
-        # todo: add checks if entries already exist
-        if db.execute('SELECT Student FROM Student WHERE Student.id = ?', id):
-            # Student already exists
-            # So we update the existing student's
 
-            studentStatement = (
-                update(student_table).
-                values(is_undergraduate=is_undergraduate, course=course, registration_status=registration_status).
-                where(id=id)
-            )
+            db.session.add(new_snapshot)
 
-        else:
-            # Student does not exist
-            # So we insert a new row
-            studentStatement = (
-                insert('Student').
-                values(id=id, is_undergraduate=is_undergraduate, course_year=course_year, course=, snapshots=)
-            )
-
-        db.session.add()
-        db.session.commit()
+        db.session.commit()  # Commit Changes to DB
+        # todo: add a try-except here down the line
