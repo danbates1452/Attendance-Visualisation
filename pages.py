@@ -5,7 +5,7 @@ import excel_import
 
 def show_home():
     return render_template(
-        'index.html',
+        'page.html',
         title='Attendance Visualisation'
     )
 
