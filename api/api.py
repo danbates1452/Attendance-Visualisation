@@ -56,6 +56,20 @@ def import_get():
 def login_get():
     return pages.show_login()
 
+@app.route('/student', methods=['GET'])
+def get_student():
+    args = request.args
+    #return db.session.query(Student).filter_by(id=args.get('id')).first().__dict__
+    row = db.session.query(Student).filter_by(id=args.get('id')).first()
+    return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
+
+# todo: sus out how I'm going to do all the different parameters etc that a snapshot endpoint could use -> look into Flask RESTful
+@app.route('/snapshot', methods=['GET'])
+def get_snapshot():
+    args = request.args
+    row = db.session.query(Snapshot).filter_by(student_id=args.get('student_id')).first()
+    return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
+
 # Database Setup
 db = SQLAlchemy(app)
 
@@ -105,9 +119,10 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
-    db.create_all()
-    from excel_import import excel_to_db
-    excel_to_db('./sample_data.xlsx', db)
+    #db.create_all()
+    #from excel_import import excel_to_db
+    #excel_to_db('./sample_data.xlsx', db)
+    pass
 
 if __name__ == '__main__':
     app.run()
