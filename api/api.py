@@ -1,13 +1,13 @@
 # Libraries
 from typing import List
 
-import flask
 from flask import Flask, render_template, request
-import yaml
+from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
-import os
+import yaml
+import json
 
 # Project Modules
 import pages
@@ -41,27 +41,44 @@ if config['APP_' + environment_type.upper()]:  # if environment type has app con
     for key, value in config['APP_' + environment_type.upper()].items():  # loop through and add environment configurations
         app.config[key] = value
 
+api = Api(app)
+parser = reqparse.RequestParser()
+parser.add_argument('')
+
 # todo: Remember to use escape() on userinput to avoid XSS attacks
-@app.route('/')
-def home_get():
-    return pages.show_home()
+
+class StudentList(Resource):
+    def get(self):
+        pass #TODO: figure out how to limit then number returned 
+
+class Student(Resource):
+    def get(self, id):
+        row = db.session.query(Student).filter_by(id=id)
+        return json.dumps(row)
+
+class SnapshotList(Resource):
+    def get(self, student_id):
+        rows = db.session.query(Snapshot).filter_by(student_id=student_id)
+        return json.dumps(row_to_dict(row) for row in rows)
+
+class Snapshot(Resource):
+    def get(self, student_id, date):
+        return {}
+    
+    def put(self, student_id, date):
+        args = parser.parse_args()
+        pass
 
 
-@app.route('/import')
-def import_get():
-    return pages.show_import()
-
-
-@app.route('/login')
-def login_get():
-    return pages.show_login()
+api.add_resource(SnapshotList, '/snapshot/<student_id>')
+api.add_resource(Snapshot, '/snapshot/<student_id>/<date>')
 
 @app.route('/student', methods=['GET'])
 def get_student():
     args = request.args
     #return db.session.query(Student).filter_by(id=args.get('id')).first().__dict__
     row = db.session.query(Student).filter_by(id=args.get('id')).first()
-    return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
+    return row_to_dict(row)
 
 # todo: sus out how I'm going to do all the different parameters etc that a snapshot endpoint could use -> look into Flask RESTful
 @app.route('/snapshot', methods=['GET'])
