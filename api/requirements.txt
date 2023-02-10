@@ -1,5 +1,5 @@
 flask
-flask_sqlalchemy
+Flask-SQLAlchemy
 pyyaml
 pandas
 numpy

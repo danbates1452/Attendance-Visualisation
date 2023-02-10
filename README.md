@@ -5,10 +5,10 @@ My Dissertation Project on *Attendance Monitoring Visualisation*, at the Univers
 As university attendance rates continue to soar, the number of staff checking up on student attendance has stayed roughly the same. Sussex experiences this just as much as other universities, and as such, there is space/need for more powerful tool to visualise and filter attendance data.
 
 ## Installation
-
+Note: Requires Node.js and Python3
 1. Run ```npm install``` in the project directory to install dependencies from package.json.
-2. Navigate to the `/api` subdirectory e.g. by using ```cd api```
-3. Create a python virtual environment by running ```python3 -m venv venv```
+2. Navigate to the '/api' subdirectory e.g. by using ```cd api```
+3. Create a python virtual environment at '/api/venv' with ```python3 -m venv venv```
 4. Install all python dependencies by running ```pip install -r requirements.txt```
 
 ### Further steps
