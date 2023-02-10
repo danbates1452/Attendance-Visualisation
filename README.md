@@ -6,10 +6,14 @@ As university attendance rates continue to soar, the number of staff checking up
 
 ## Installation
 Note: Requires Node.js and Python3
+
+In your terminal/OS of choice (though written for Windows CMD)...
 1. Run ```npm install``` in the project directory to install dependencies from package.json.
 2. Navigate to the '/api' subdirectory e.g. by using ```cd api```
 3. Create a python virtual environment at '/api/venv' with ```python3 -m venv venv```
-4. Install all python dependencies by running ```pip install -r requirements.txt```
+4. Activate your virtual environment by running ```./api/venv/Scripts/activate``` (```./api/venv/bin/activate``` for Unix systems)
+5. Install all python dependencies into your virtual environment by running ```pip install -r requirements.txt```
+6. Exit your virtual environment with a simple ```deactivate```
 
 ### Further steps
 Create a configuration file for your Flask API in the following format, where a common 'APP' configuration stores common items, and subversions have differing attributes.
@@ -27,7 +31,8 @@ APP_DEV_SERVICE:
 APP_PROD:
     SQLALCHEMY_DATABASE_URI: <value>
 ```
-## To Start (from project directory)
-React Application: `npm start`
-
-Flask API: `npm run-script start-api`
+## To Start
+1. Open a terminal in the project's directory
+2. Run `npm start` to start up the React Frontend Application
+3. Run `npm run-script start-api` to start up the Flask Backend API
+4. And that's it!
