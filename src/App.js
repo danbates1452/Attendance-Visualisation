@@ -4,9 +4,17 @@ import './App.css';
 
 
 function Table({data}) {
-  
-
-
+  //TODO: extract headers and rows from data
+  return (
+    <table>
+      <thead>
+        {headers}
+      </thead>
+      <tbody>
+        {rows}
+      </tbody>
+    </table>
+  );
 }
 
 function Navigation() {

@@ -59,7 +59,7 @@ class Student(Resource):
 class SnapshotList(Resource):
     def get(self, student_id):
         rows = db.session.query(Snapshot).filter_by(student_id=student_id)
-        return json.dumps(row_to_dict(row) for row in rows)
+        return json.dumps(row_to_dict(row for row in rows))
 
 class Snapshot(Resource):
     def get(self, student_id, date):
