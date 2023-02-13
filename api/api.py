@@ -70,7 +70,7 @@ class Snapshot(Resource):
         pass
 
 
-api.add_resource(SnapshotList, '/snapshot/<student_id>')
+api.add_resource(SnapshotList, '/snapshot/<int:student_id>')
 api.add_resource(Snapshot, '/snapshot/<student_id>/<date>')
 
 @app.route('/student', methods=['GET'])
