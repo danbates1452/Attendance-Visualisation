@@ -45,10 +45,10 @@ api = Api(app)
 
 # TODO: Remember to use escape() on userinput to avoid XSS attacks
 
-class APIEndpoint(Resource): # TODO: experiment to see if we can avoid repetitive code by using a common superclass like this one
+class APIResource(Resource): # TODO: experiment to see if we can avoid repetitive code by using a common superclass like this one
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        super(APIEndpoint, self).__init__()
+        super(APIResource, self).__init__()
 
 class StudentListAPI(Resource):
     def get(self):
@@ -93,11 +93,25 @@ class CourseListAPI(Resource):
     def __init__(self):
         pass # TODO: complete
 
-api.add_resource(StudentListAPI, '/student/<course_code>')
+class CourseAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        #self.reqparse.add_argument('code_or_title', type=str)
+        pass
+
+    def get(self):
+        # TODO: decide if the input is a code or a title - check for whitespace
+
+        pass
+    
+
+# NOTE: Make sure resource endpoints are unique
+api.add_resource(StudentListAPI, '/student/course/<course_code>')
 api.add_resource(StudentAPI, '/student/<int:id>')
 
 api.add_resource(SnapshotListAPI, '/snapshot/<int:student_id>/<start_date>/<end_date>')
 
+#api.add_resource(CourseAPI, '/course/<str:code_or_title>')
 # Database Setup
 db = SQLAlchemy(app)
 
