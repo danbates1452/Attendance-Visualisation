@@ -57,11 +57,14 @@ class StudentListAPI(Resource):
 class StudentAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument
+        self.reqparse.add_argument('id', type=int, required=True)
 
-    def get(self, id):
-        row = db.session.query(Student).filter_by(id=id)
-        return json.dumps(row)
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {row_to_dict(db.session.query(Student).filter_by(id=args.id))}
+    
+    def put(self):
+        pass #TODO: check args for all required parts of a student
 
 class SnapshotListAPI(Resource):
     def __init__(self):
@@ -81,37 +84,44 @@ class SnapshotListAPI(Resource):
             )
         elif args.start_date: #no end date provided, so looks at a single date
             query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id, db.Snapshot.date == args.start_date)
-        else:
+        else: #no dates specified so return all snapshots for the student
             query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id)
         return {query_to_dict(query)}
     
-    def put(self, student_id, date):
+    def put(self):
+        #student_id, date
         args = self.reqparse.parse_args()
         pass
-
-class CourseListAPI(Resource):
-    def __init__(self):
-        pass # TODO: complete
 
 class CourseAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        #self.reqparse.add_argument('code_or_title', type=str)
-        pass
+        self.reqparse.add_argument('code', type=str) #TODO: how to make sure one of these is used without being straight up 'required'
+        self.reqparse.add_argument('title', type=str)
+        super(CourseAPI, self).__init__()
 
     def get(self):
-        # TODO: decide if the input is a code or a title - check for whitespace
-
-        pass
+        args = self.reqparse.parse_args()
+        if args.code:
+            row = db.session.query(Course).filter_by(code=args.code)
+        elif args.title:
+            row = db.session.query(Course).filter_by(title=args.title)
+        else:  # TODO: just return all the courses
+            row = db.session.query(Course)
+        return {row_to_dict(row)}
     
 
 # NOTE: Make sure resource endpoints are unique
-api.add_resource(StudentListAPI, '/student/course/<course_code>')
-api.add_resource(StudentAPI, '/student/<int:id>')
+api.add_resource(StudentListAPI, [
+    '/student/course/<course_code>', 
+    '/student/stage/<int:stage>', 
+    '/student/is_undergraduate/<bool:is_undergraduate>'
+]) #filter student by course, stage, and graduate status
+api.add_resource(StudentAPI, '/student/id/<int:id>')
 
-api.add_resource(SnapshotListAPI, '/snapshot/<int:student_id>/<start_date>/<end_date>')
+api.add_resource(SnapshotListAPI, '/snapshot/<int:student_id>/<start_date>/<end_date>') #TODO: does this need more variations on the endpoints
 
-#api.add_resource(CourseAPI, '/course/<str:code_or_title>')
+api.add_resource(CourseAPI, ['/course/code/<code>', '/course/title/<title>'])
 # Database Setup
 db = SQLAlchemy(app)
 
