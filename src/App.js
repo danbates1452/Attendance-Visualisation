@@ -5,6 +5,8 @@ import './App.css';
 
 function Table({data}) {
   //TODO: extract headers and rows from data
+  let headers = {};
+  let rows = {};
   return (
     <table>
       <thead>
@@ -32,7 +34,7 @@ function App() {
   const [currentStudent, setCurrentStudent] = useState(0);
 
   useEffect(() => {
-    fetch('/student?id=43437412').then(res => res.json()).then(data => {
+    fetch('/student/43437412').then(res => res.json()).then(data => {
       setCurrentStudent([data.course_code, data.id, data.is_undergraduate, data.stage]);
     });
   })
@@ -40,7 +42,9 @@ function App() {
   const [snapshots, setSnapshots] = useState(0);
 
   useEffect(() => {
-    fetch()
+    fetch('/snapshot/43437412').then(res => res.json()).then(data => {
+      setSnapshots([data.student_id, data.teaching_sessions])
+    })
   })
 
   return (
@@ -50,7 +54,7 @@ function App() {
       </header>
       <body>
         <p>{currentStudent}</p>
-        <p>{}</p>
+        <p>{snapshots}</p>
       </body>
     </div>
   );

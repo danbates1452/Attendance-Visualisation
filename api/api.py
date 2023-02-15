@@ -42,50 +42,61 @@ if config['APP_' + environment_type.upper()]:  # if environment type has app con
         app.config[key] = value
 
 api = Api(app)
-parser = reqparse.RequestParser()
-parser.add_argument('')
 
-# todo: Remember to use escape() on userinput to avoid XSS attacks
+# TODO: Remember to use escape() on userinput to avoid XSS attacks
 
-class StudentList(Resource):
+class APIEndpoint(Resource): # TODO: experiment to see if we can avoid repetitive code by using a common superclass like this one
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        super(APIEndpoint, self).__init__()
+
+class StudentListAPI(Resource):
     def get(self):
         pass #TODO: figure out how to limit then number returned 
 
-class Student(Resource):
+class StudentAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument
+
     def get(self, id):
         row = db.session.query(Student).filter_by(id=id)
         return json.dumps(row)
 
-class SnapshotList(Resource):
-    def get(self, student_id):
-        rows = db.session.query(Snapshot).filter_by(student_id=student_id)
-        return json.dumps(row_to_dict(row for row in rows))
+class SnapshotListAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('student_id', type=int, required=True)
+        self.reqparse.add_argument('start_date', type=Date, required=True)
+        self.reqparse.add_argument('end_date', type=Date)
+        super(SnapshotListAPI, self).__init__()
 
-class Snapshot(Resource):
-    def get(self, student_id, date):
-        return {}
+    def get(self):
+        args = self.reqparse.parse_args()
+        if args.start_date and args.end_date:
+            query = db.session.query(Snapshot).filter(
+                db.Snapshot.student_id == args.student_id,
+                db.Snapshot.date >= args.start_date,
+                db.Snapshot.date <= args.end_date
+            )
+        elif args.start_date: #no end date provided, so looks at a single date
+            query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id, db.Snapshot.date == args.start_date)
+        else:
+            query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id)
+        return {query_to_dict(query)}
     
     def put(self, student_id, date):
-        args = parser.parse_args()
+        args = self.reqparse.parse_args()
         pass
 
+class CourseListAPI(Resource):
+    def __init__(self):
+        pass # TODO: complete
 
-api.add_resource(SnapshotList, '/snapshot/<int:student_id>')
-api.add_resource(Snapshot, '/snapshot/<student_id>/<date>')
+api.add_resource(StudentListAPI, '/student/<course_code>')
+api.add_resource(StudentAPI, '/student/<int:id>')
 
-@app.route('/student', methods=['GET'])
-def get_student():
-    args = request.args
-    #return db.session.query(Student).filter_by(id=args.get('id')).first().__dict__
-    row = db.session.query(Student).filter_by(id=args.get('id')).first()
-    return row_to_dict(row)
-
-# todo: sus out how I'm going to do all the different parameters etc that a snapshot endpoint could use -> look into Flask RESTful
-@app.route('/snapshot', methods=['GET'])
-def get_snapshot():
-    args = request.args
-    row = db.session.query(Snapshot).filter_by(student_id=args.get('student_id')).first()
-    return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
+api.add_resource(SnapshotListAPI, '/snapshot/<int:student_id>/<start_date>/<end_date>')
 
 # Database Setup
 db = SQLAlchemy(app)

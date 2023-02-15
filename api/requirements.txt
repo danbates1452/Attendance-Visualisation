@@ -1,5 +1,7 @@
+python-dotenv
 flask
 Flask-SQLAlchemy
+psycopg2
 flask-restful
 pyyaml
 pandas
