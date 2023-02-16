@@ -8,6 +8,7 @@ from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, Forei
 from sqlalchemy.orm import relationship
 import yaml
 import json
+from distutils.util import strtobool
 
 # Project Modules
 import pages
@@ -44,29 +45,56 @@ if config['APP_' + environment_type.upper()]:  # if environment type has app con
 api = Api(app)
 
 # TODO: Remember to use escape() on userinput to avoid XSS attacks
-
+# TODO: figure out how to limit then number returned 
 class APIResource(Resource): # TODO: experiment to see if we can avoid repetitive code by using a common superclass like this one
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         super(APIResource, self).__init__()
-
-class StudentListAPI(Resource):
-    def get(self):
-        pass #TODO: figure out how to limit then number returned 
-
-class StudentAPI(Resource):
+'''
+class StudentByIdAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('id', type=int, required=True)
 
     def get(self):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter_by(id=args.id))}
+        return {row_to_dict(db.session.query(Student).filter(db.Student.id==args.id))}
     
     def put(self):
         pass #TODO: check args for all required parts of a student
+'''
+class StudentByCourseAPI(Resource):
+    #Course Code, not title
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('course_code', required=True)
 
-class SnapshotListAPI(Resource):
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {row_to_dict(db.session.query(Student).filter_by(course_code=args.course_code))}
+
+class StudentByStageAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('stage', type=str, required=True)
+        super(StudentByStageAPI, self).__init__()
+    
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {row_to_dict(db.session.query(Student).filter_by(stage=args.stage))}
+
+class StudentByGradAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('is_undergraduate', type=str, required=True)
+        super(StudentByGradAPI, self).__init__()
+    
+    def get(self):
+        args = self.reqparse.parse_args()
+        is_ug = strtobool(args.is_undergraduate)
+        return {row_to_dict(db.session.query(Student).filter_by(is_undergraduate=is_ug))}
+
+class SnapshotByIdStartEndAPI(Resource): #student_id, start_date, end_date
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('student_id', type=int, required=True)
@@ -75,53 +103,74 @@ class SnapshotListAPI(Resource):
         super(SnapshotListAPI, self).__init__()
 
     def get(self):
-        args = self.reqparse.parse_args()
-        if args.start_date and args.end_date:
-            query = db.session.query(Snapshot).filter(
-                db.Snapshot.student_id == args.student_id,
-                db.Snapshot.date >= args.start_date,
-                db.Snapshot.date <= args.end_date
-            )
-        elif args.start_date: #no end date provided, so looks at a single date
-            query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id, db.Snapshot.date == args.start_date)
-        else: #no dates specified so return all snapshots for the student
-            query = db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id)
-        return {query_to_dict(query)}
-    
-    def put(self):
-        #student_id, date
-        args = self.reqparse.parse_args()
-        pass
+        args = self.reqparse.parse_args()      
+        return {query_to_dict(db.session.query(Snapshot).filter(
+            db.Snapshot.student_id == args.student_id,
+            db.Snapshot.date >= args.start_date,
+            db.Snapshot.date <= args.end_date
+        ))}
 
-class CourseAPI(Resource):
+
+class SnapshotByIdStartOnlyAPI(Resource): #student_id, start_date
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('code', type=str) #TODO: how to make sure one of these is used without being straight up 'required'
-        self.reqparse.add_argument('title', type=str)
-        super(CourseAPI, self).__init__()
+        self.reqparse.add_argument('student_id', type=int, required=True)
+        self.reqparse.add_argument('start_date', type=Date, required=True)
+        super(SnapshotByIdStartOnlyAPI, self).__init__()
 
     def get(self):
         args = self.reqparse.parse_args()
-        if args.code:
-            row = db.session.query(Course).filter_by(code=args.code)
-        elif args.title:
-            row = db.session.query(Course).filter_by(title=args.title)
-        else:  # TODO: just return all the courses
-            row = db.session.query(Course)
-        return {row_to_dict(row)}
+        return {query_to_dict(db.session.query(Snapshot).filter(
+            db.Snapshot.student_id==args.student_id, 
+            db.Snapshot.date == args.start_date
+        ))}
+
+class SnapshotByIdOnlyAPI(Resource): #student_id
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('student_id', type=int, required=True)
+        super(SnapshotByIdOnlyAPI, self).__init__()
+
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {query_to_dict(db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id))}
+
+
+class CourseByCodeAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('code', type=str, required=True)
+        
+        super(CourseByCodeAPI, self).__init__()
+
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {row_to_dict(db.session.query(Course).filter_by(code=args.code))}
+
+class CourseByTitleAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('title', type=str, required=True)        
+        super(CourseByTitleAPI, self).__init__()
+
+    def get(self):
+        args = self.reqparse.parse_args()
+        return {row_to_dict(db.session.query(Course).filter_by(title=args.title))}
     
-
 # NOTE: Make sure resource endpoints are unique
-api.add_resource(StudentListAPI, [
-    '/student/course/<course_code>', 
-    '/student/stage/<int:stage>', 
-    '/student/is_undergraduate/<bool:is_undergraduate>'
-]) #filter student by course, stage, and graduate status
-api.add_resource(StudentAPI, '/student/id/<int:id>')
+#filter student by course, stage, and graduate status
+api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
+api.add_resource(StudentByStageAPI, '/api/student/stage/<int:stage>')
+api.add_resource(StudentByGradAPI, '/api/student/is_undergraduate/<is_undergraduate>')
+#api.add_resource(StudentByIdAPI, '/api/student/id/<int:id>')
 
-api.add_resource(SnapshotListAPI, '/snapshot/<int:student_id>/<start_date>/<end_date>') #TODO: does this need more variations on the endpoints
+api.add_resource(SnapshotByIdStartEndAPI, '/api/snapshot/<int:student_id>/<start_date>/<end_date>')
+api.add_resource(SnapshotByIdStartOnlyAPI, '/api/snapshot/<int:student_id>/<start_date>')
+api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
 
-api.add_resource(CourseAPI, ['/course/code/<code>', '/course/title/<title>'])
+api.add_resource(CourseByCodeAPI, '/api/course/code/<code>')
+api.add_resource(CourseByTitleAPI, '/api/course/title/<title>')
+# TODO: add search endpoint for each
 # Database Setup
 db = SQLAlchemy(app)
 

@@ -34,7 +34,7 @@ function App() {
   const [currentStudent, setCurrentStudent] = useState(0);
 
   useEffect(() => {
-    fetch('/student/43437412').then(res => res.json()).then(data => {
+    fetch('/api/student/id/43437412').then(res => res.json()).then(data => {
       setCurrentStudent([data.course_code, data.id, data.is_undergraduate, data.stage]);
     });
   })
@@ -42,7 +42,7 @@ function App() {
   const [snapshots, setSnapshots] = useState(0);
 
   useEffect(() => {
-    fetch('/snapshot/43437412').then(res => res.json()).then(data => {
+    fetch('/api/snapshot/43437412').then(res => res.json()).then(data => {
       setSnapshots([data.student_id, data.teaching_sessions])
     })
   })
