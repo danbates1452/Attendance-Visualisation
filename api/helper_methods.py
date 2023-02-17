@@ -8,5 +8,12 @@ def get_absolute_path(relative):
 def row_to_dict(row):
     return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
 
-def query_to_dict(query_result):
-    return [row_to_dict(row) for row in query_result]
+def snapshot_query_to_dict(query):
+    result = {}
+    for row in query:
+        date = row.date.strftime(date_format)
+        result[date] = row_to_dict(row)
+    return result
+
+#Global Constants
+date_format = '%Y-%m-%d'

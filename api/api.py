@@ -50,24 +50,24 @@ class APIResource(Resource): # TODO: experiment to see if we can avoid repetitiv
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         super(APIResource, self).__init__()
-'''
+
 class StudentByIdAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('id', type=int, required=True)
+        super(StudentByIdAPI, self).__init__()
 
-    def get(self):
+    def get(self, id):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter(db.Student.id==args.id))}
+        return {row_to_dict(db.session.query(Student).filter(db.Student.id==id))}
     
-    def put(self):
+    def put(self, id):
         pass #TODO: check args for all required parts of a student
-'''
+
 class StudentByCourseAPI(Resource):
     #Course Code, not title
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('course_code', required=True)
+        super(StudentByCourseAPI, self).__init__()
 
     def get(self):
         args = self.reqparse.parse_args()
@@ -76,86 +76,78 @@ class StudentByCourseAPI(Resource):
 class StudentByStageAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('stage', type=str, required=True)
         super(StudentByStageAPI, self).__init__()
     
-    def get(self):
+    def get(self, stage):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter_by(stage=args.stage))}
+        return {row_to_dict(db.session.query(Student).filter_by(stage=stage))}
 
 class StudentByGradAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('is_undergraduate', type=str, required=True)
         super(StudentByGradAPI, self).__init__()
     
-    def get(self):
+    def get(self, is_undergraduate):
         args = self.reqparse.parse_args()
-        is_ug = strtobool(args.is_undergraduate)
+        is_ug = strtobool(is_undergraduate)
         return {row_to_dict(db.session.query(Student).filter_by(is_undergraduate=is_ug))}
 
 class SnapshotByIdStartEndAPI(Resource): #student_id, start_date, end_date
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('student_id', type=int, required=True)
-        self.reqparse.add_argument('start_date', type=Date, required=True)
-        self.reqparse.add_argument('end_date', type=Date)
-        super(SnapshotListAPI, self).__init__()
+        super(SnapshotByIdStartEndAPI, self).__init__()
 
-    def get(self):
+    def get(self, student_id, start_date, end_date):
         args = self.reqparse.parse_args()      
-        return {query_to_dict(db.session.query(Snapshot).filter(
-            db.Snapshot.student_id == args.student_id,
-            db.Snapshot.date >= args.start_date,
-            db.Snapshot.date <= args.end_date
-        ))}
+        query = db.session.query(Snapshot).filter(
+            db.Snapshot.student_id == student_id,
+            db.Snapshot.date >= start_date,
+            db.Snapshot.date <= end_date
+        )
+        return snapshot_query_to_dict(query)
 
 
 class SnapshotByIdStartOnlyAPI(Resource): #student_id, start_date
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('student_id', type=int, required=True)
-        self.reqparse.add_argument('start_date', type=Date, required=True)
         super(SnapshotByIdStartOnlyAPI, self).__init__()
 
-    def get(self):
+    def get(self, student_id, start_date):
         args = self.reqparse.parse_args()
-        return {query_to_dict(db.session.query(Snapshot).filter(
-            db.Snapshot.student_id==args.student_id, 
-            db.Snapshot.date == args.start_date
-        ))}
+        query = db.session.query(Snapshot).filter(
+            db.Snapshot.student_id==student_id, 
+            db.Snapshot.date == start_date
+        )
+        return snapshot_query_to_dict(query)
 
 class SnapshotByIdOnlyAPI(Resource): #student_id
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('student_id', type=int, required=True)
         super(SnapshotByIdOnlyAPI, self).__init__()
 
-    def get(self):
+    def get(self, student_id):
         args = self.reqparse.parse_args()
-        return {query_to_dict(db.session.query(Snapshot).filter(db.Snapshot.student_id==args.student_id))}
+        query = db.session.query(Snapshot).filter_by(student_id=student_id)
+        return snapshot_query_to_dict(query)
 
 
 class CourseByCodeAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('code', type=str, required=True)
-        
         super(CourseByCodeAPI, self).__init__()
 
-    def get(self):
+    def get(self, code):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Course).filter_by(code=args.code))}
+        return {row_to_dict(db.session.query(Course).filter_by(code=code))}
 
 class CourseByTitleAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('title', type=str, required=True)        
         super(CourseByTitleAPI, self).__init__()
 
-    def get(self):
+    def get(self, title):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Course).filter_by(title=args.title))}
+        return {row_to_dict(db.session.query(Course).filter_by(title=title))}
     
 # NOTE: Make sure resource endpoints are unique
 #filter student by course, stage, and graduate status
@@ -170,7 +162,7 @@ api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
 
 api.add_resource(CourseByCodeAPI, '/api/course/code/<code>')
 api.add_resource(CourseByTitleAPI, '/api/course/title/<title>')
-# TODO: add search endpoint for each
+# TODO: add search endpoint for each to allow for querying/searches direct from frontend
 # Database Setup
 db = SQLAlchemy(app)
 
