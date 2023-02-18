@@ -1,8 +1,9 @@
-python-dotenv
+python-dotenv #for flask env
 flask
-Flask-SQLAlchemy
-psycopg2
-flask-restful
-pyyaml
-pandas
-numpy
+Flask-SQLAlchemy #SQLAlchemy + SQLAlchemy support in Flask
+psycopg2 #PostgreSQL support in SQLAlchemy
+flask-restful #Flask REST API lib
+pyyaml #YAML file support (for config)
+pandas #for data analysis / loading excel into dataframes
+openpyxl # opening excel files with pandas
+numpy # TODO: needed?
