@@ -1,13 +1,10 @@
 # Libraries
-from typing import List
-
 from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
 import yaml
-import json
 from distutils.util import strtobool
 
 # Project Modules
@@ -58,7 +55,7 @@ class StudentByIdAPI(Resource):
 
     def get(self, id):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter(db.Student.id==id))}
+        return {row_to_dict(db.session.query(Student).filter(db.Student.student_id==id))}
     
     def put(self, id):
         pass #TODO: check args for all required parts of a student
@@ -183,6 +180,7 @@ class Snapshot(db.Model):
     assessment_explained_non_submission = Column(Integer) # Explained Unsubmitted Assessments
     assessment_non_submission = Column(Integer)  # Unexplained Unsubmitted Assessments
     assessment_in_late_period = Column(Integer)  # Submitted during Late Period
+    assessment_last = Column(Date) # Date of last Assessment
     # Academic Advising
     academic_advising_sessions = Column(Integer)  # Academic Advising Sessions Assigned
     academic_advising_attendance = Column(Integer)  # Academic Advising Attended
@@ -212,9 +210,10 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
-    #db.create_all()
-    #from excel_import import excel_to_db
-    #excel_to_db('./sample_data.xlsx', db)
+    db.create_all()
+    db.session.commit()
+    from excel_import import excel_to_db
+    excel_to_db('./sample_data.xlsx', db)
     pass
 
 if __name__ == '__main__':

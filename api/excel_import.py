@@ -16,12 +16,9 @@ def excel_to_db(filename, db):
     # todo: Validation
     df = df.dropna(how='all')  # drop any fully empty rows
 
-    # todo: selecting columns by type isn't working because most are often unfilled! So... do it manually column by column
-    integers = df.select_dtypes(include=['float'])
-    df[integers.columns] = integers.fillna(0)
+    #df = df.fillna('N/A') # fill empty rows with 'N/A' to avoid NaN and NaT issues with insertion
 
-    datetimes = df.select_dtypes(include=['datetime'])
-    df[datetimes.columns] = datetimes.fillna('')
+    df = df.replace({float('nan'): 0, np.datetime64('nat'):'N/A'})
 
     #df = df.fillna(np.nan).replace([np.nan], [None]) # replace all 'Not A X' types with np.nan then None
     pd.set_option('display.max_columns', None)
@@ -30,7 +27,7 @@ def excel_to_db(filename, db):
         # get all data regardless of table
         # name = row[index] #Original Name
 
-        id = int(row[0]) #User
+        student_id = int(row[0]) #User
         is_undergraduate = True if row[1] == "UG" else False #Level of Study
         stage = int(row[2]) #Year of Course
         registration_status = row[3] #Registration Status
@@ -47,14 +44,15 @@ def excel_to_db(filename, db):
         assessment_explained_non_submission = int(row[15]) #Explained Non-Submission
         assessment_non_submission = int(row[16]) #Non Submission
         assessment_in_late_period = row[17] #Within Late Period Flag
+        assessment_last = row[19]
         # row index 18 is a percentage
-        academic_advising_sessions = int(row[19]) #Academic Advising Sessions
-        academic_advising_attendance = int(row[20]) #Attended (AA)
-        academic_advising_explained_absence = int(row[21]) #Explained Non Attendances (AA)
-        academic_advising_absence = int(row[22]) #Non Attendances (AA)
-        academic_advising_not_recorded = int(row[23]) #Attendance Not Recorded (AA)
-        # row index 24 is a percentage
-        academic_advising_last = row[25] #Last Attended (AA)
+        academic_advising_sessions = int(row[20]) #Academic Advising Sessions
+        academic_advising_attendance = int(row[21]) #Attended (AA)
+        academic_advising_explained_absence = int(row[22]) #Explained Non Attendances (AA)
+        academic_advising_absence = int(row[23]) #Non Attendances (AA)
+        academic_advising_not_recorded = int(row[24]) #Attendance Not Recorded (AA)
+        # row index 25 is a percentage
+        academic_advising_last = row[26] #Last Attended (AA)
 
         date = datetime.now() # insertion date & time, for keeping track of snapshots
 
@@ -67,9 +65,9 @@ def excel_to_db(filename, db):
             db.session.add(new_course)
 
         # Check if student exists already before either updating or creating anew
-        if db.session.query(Student).filter_by(id=id).first() is not None:
+        if db.session.query(Student).filter_by(id=student_id).first() is not None:
             # Student already exists -> update existing student
-            updated_student = db.session.query(Student).filter(id=id).first()
+            updated_student = db.session.query(Student).filter(id=student_id).first()
             updated_student.is_undergraduate = is_undergraduate
             updated_student.stage = stage
             updated_student.course_code = code
@@ -78,7 +76,7 @@ def excel_to_db(filename, db):
         else:
             # Student does not exist -> create new student
             new_student = Student(
-                id=id,
+                id=student_id,
                 is_undergraduate=is_undergraduate,
                 stage=stage,
                 course_code=code
@@ -86,9 +84,9 @@ def excel_to_db(filename, db):
             db.session.add(new_student)
 
         # if snapshot does not already exist
-        if db.session.query(Snapshot.student_id).filter_by(student_id=id, date=date).first() is None:
+        if db.session.query(Snapshot.student_id).filter_by(student_id=student_id, date=date).first() is None:
             new_snapshot = Snapshot(
-                student_id=id,
+                student_id=student_id,
                 date=date,
                 registration_status=registration_status,
 
@@ -103,6 +101,7 @@ def excel_to_db(filename, db):
                 assessment_explained_non_submission=assessment_explained_non_submission,
                 assessment_non_submission=assessment_non_submission,
                 assessment_in_late_period=assessment_in_late_period,
+                assessment_last=assessment_last,
 
                 academic_advising_sessions=academic_advising_sessions,
                 academic_advising_attendance=academic_advising_attendance,
