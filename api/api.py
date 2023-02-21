@@ -165,7 +165,7 @@ db = SQLAlchemy(app)
 
 class Snapshot(db.Model):
     __tablename__ = "Snapshot"
-    student_id = Column(Integer, ForeignKey("Student.id"), primary_key=True, nullable=False)
+    student_id = Column(Integer, ForeignKey("Student.student_id"), primary_key=True, nullable=False)
     date = Column(Date, primary_key=True, nullable=False)
     registration_status = Column(String)
     # Teaching
@@ -187,7 +187,7 @@ class Snapshot(db.Model):
     academic_advising_explained_absence = Column(Integer) # Academic Advising Explained Absence
     academic_advising_absence = Column(Integer)  # Academic Advising Absence
     academic_advising_not_recorded = Column(Integer)  # Academic Advising Attendance Not Recorded
-    academic_advising_last = Column(Integer)  # Date of last Academic Advising session attended
+    academic_advising_last = Column(Date)  # Date of last Academic Advising session attended
 
     # Relationships
     # student = relationship("Student", back_populates = "snapshots")
@@ -201,7 +201,7 @@ class Course(db.Model):
 
 class Student(db.Model):
     __tablename__ = 'Student'
-    id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
+    student_id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
     is_undergraduate = Column(Boolean, nullable=False) # True = Undergraduate, False = Postgraduate Taught
     stage = Column(Integer, nullable=False)
     course_code = Column(String, ForeignKey(Course.code), nullable=False) # course_code, One-To-One
@@ -210,6 +210,7 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
+    db.drop_all()
     db.create_all()
     db.session.commit()
     from excel_import import excel_to_db
