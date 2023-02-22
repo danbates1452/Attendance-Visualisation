@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 import yaml
 from distutils.util import strtobool
@@ -166,7 +166,7 @@ db = SQLAlchemy(app)
 class Snapshot(db.Model):
     __tablename__ = "Snapshot"
     student_id = Column(Integer, ForeignKey("Student.student_id"), primary_key=True, nullable=False)
-    date = Column(Date, primary_key=True, nullable=False)
+    date = Column(DateTime, primary_key=True, nullable=False)
     registration_status = Column(String)
     # Teaching
     teaching_sessions = Column(Integer)  # Teaching Sessions Assigned
@@ -210,11 +210,11 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
-    db.drop_all()
-    db.create_all()
-    db.session.commit()
-    from excel_import import excel_to_db
-    excel_to_db('./sample_data.xlsx', db)
+    #db.drop_all()
+    #db.create_all()
+    #db.session.commit()
+    #from excel_import import excel_to_db
+    #excel_to_db('./sample_data.xlsx', db)
     pass
 
 if __name__ == '__main__':
