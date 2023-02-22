@@ -19,6 +19,42 @@ function Table({data}) {
   );
 }
 
+function StudentTable() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/student/student_id/43437412')
+      .then(response => response.json())
+      .then(data => setData(data));
+  }, []);
+
+  return (
+    <div>
+      <h1>Student 43437412</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Level</th>
+            <th>Stage</th>
+            <th>Registration Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(student => (
+            <tr key={student.student_id}>
+              <td>{student.student_id}</td>
+              <td>{student.is_undergraduate}</td>
+              <td>{student.stage}</td>
+              <td>{student.registration_status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function Navigation() {
 return (
   <div className='navbar'>
@@ -34,8 +70,8 @@ function App() {
   const [currentStudent, setCurrentStudent] = useState(0);
 
   useEffect(() => {
-    fetch('/api/student/id/43437412').then(res => res.json()).then(data => {
-      setCurrentStudent([data.course_code, data.id, data.is_undergraduate, data.stage]);
+    fetch('/api/student/student_id/43437412').then(res => res.json()).then(data => {
+      setCurrentStudent([data.course_code, data.student_id, data.is_undergraduate, data.stage]);
     });
   })
 
@@ -43,7 +79,7 @@ function App() {
 
   useEffect(() => {
     fetch('/api/snapshot/43437412').then(res => res.json()).then(data => {
-      setSnapshots([data.student_id, data.teaching_sessions])
+      setSnapshots(data)
     })
   })
 
@@ -53,8 +89,7 @@ function App() {
         {Navigation()}
       </header>
       <body>
-        <p>{currentStudent}</p>
-        <p>{snapshots}</p>
+        <StudentTable></StudentTable>
       </body>
     </div>
   );

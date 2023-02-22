@@ -53,11 +53,11 @@ class StudentByIdAPI(Resource):
         self.reqparse = reqparse.RequestParser()
         super(StudentByIdAPI, self).__init__()
 
-    def get(self, id):
+    def get(self, student_id):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter(db.Student.student_id==id))}
+        return {db.session.query(Student).filter_by(student_id=student_id)}
     
-    def put(self, id):
+    def put(self, student_id):
         pass #TODO: check args for all required parts of a student
 
 class StudentByCourseAPI(Resource):
@@ -151,7 +151,7 @@ class CourseByTitleAPI(Resource):
 api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
 api.add_resource(StudentByStageAPI, '/api/student/stage/<int:stage>')
 api.add_resource(StudentByGradAPI, '/api/student/is_undergraduate/<is_undergraduate>')
-#api.add_resource(StudentByIdAPI, '/api/student/id/<int:id>')
+api.add_resource(StudentByIdAPI, '/api/student/student_id/<int:student_id>')
 
 api.add_resource(SnapshotByIdStartEndAPI, '/api/snapshot/<int:student_id>/<start_date>/<end_date>')
 api.add_resource(SnapshotByIdStartOnlyAPI, '/api/snapshot/<int:student_id>/<start_date>')
