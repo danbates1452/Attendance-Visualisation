@@ -6,6 +6,7 @@ from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateT
 from sqlalchemy.orm import relationship
 import yaml
 from distutils.util import strtobool
+from flask_marshmallow import Marshmallow
 
 # Project Modules
 import pages
@@ -40,6 +41,7 @@ if config['APP_' + environment_type.upper()]:  # if environment type has app con
         app.config[key] = value
 
 api = Api(app)
+ma = Marshmallow(app)
 
 # TODO: Remember to use escape() on userinput to avoid XSS attacks
 # TODO: figure out how to limit then number returned 
@@ -54,8 +56,10 @@ class StudentByIdAPI(Resource):
         super(StudentByIdAPI, self).__init__()
 
     def get(self, student_id):
-        args = self.reqparse.parse_args()
-        return {db.session.query(Student).filter_by(student_id=student_id)}
+        #args = self.reqparse.parse_args()
+        query = db.session.query(Student).filter_by(student_id=student_id).first()
+        schema = StudentSchema()
+        return schema.dump(query)
     
     def put(self, student_id):
         pass #TODO: check args for all required parts of a student

@@ -1,7 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
+import {Bar} from 'react-chartjs-2';
+import {Chart as ChartJS} from 'chart.js/auto';
+import axios from 'axios';
 
+
+function BarChart({chartData}) {
+  return <Bar data={chartData} /*options={}*//>;
+}
 
 function Table({data}) {
   //TODO: extract headers and rows from data
@@ -65,6 +72,7 @@ return (
 
 
 function App() {
+  /*
   //note: this will update rapidly though the data doesn't change
   //TODO: investigate how to do this nicer
   const [currentStudent, setCurrentStudent] = useState(0);
@@ -72,27 +80,106 @@ function App() {
   useEffect(() => {
     fetch('/api/student/student_id/43437412').then(res => res.json()).then(data => {
       setCurrentStudent([data.course_code, data.student_id, data.is_undergraduate, data.stage]);
-    });
+    }).catch((error) => {console.log(error)});
   })
-
-  const [snapshots, setSnapshots] = useState(0);
+/*
+  const [snapshotData, setSnapshotData] = useState(0);
 
   useEffect(() => {
-    fetch('/api/snapshot/43437412').then(res => res.json()).then(data => {
-      setSnapshots(data)
+    fetch('/api/snapshot/43437412')
+    .then(res => res.json())
+    .then(data => {
+      setSnapshotData(data.date)
     })
-  })
+  }, []);
+  
 
+  const [, ] = useState({
+    labels: snapshots.map((data)=> data.date),
+    datasets: [
+      {
+        label: "Teaching Sessions Attended",
+        data: snapshots.map((data) => data.teaching_attendance)
+      }
+    ]
+  });
+*/
+//<BarChart chartData={snapshotData}/>
+//<p>{snapshots}</p>
+/*
   return (
     <div className="App">
       <header className="App-header">
         {Navigation()}
       </header>
-      <body>
-        <StudentTable></StudentTable>
-      </body>
+      <div>
+        <StudentTable/>
+        {currentStudent}
+      </div>
     </div>
   );
+  */
+
+  const [snapshotData, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await axios(
+        '/api/snapshot/43437412',
+      );
+      setData(result.data);
+    };
+
+    fetchData();
+  }, []);
+  let labels = [];
+  let data = [];
+  for (let key in snapshotData) {
+    labels.push(key)
+    data.push(snapshotData[key].teaching_attendance)
+  }
+
+  let fakeData = [1,3,4,7,8];
+  let fakeLabels = ['snap1', 'snap2', 'snap3', 'snap4'];
+
+  console.log(fakeData);
+  console.log(data);
+  console.log(fakeLabels);
+  console.log(labels);
+
+  const chartData = {
+    labels: labels,
+    datasets: [
+      {
+        label: 'Data',
+        backgroundColor: 'rgba(75,192,192,1)',
+        borderColor: 'rgba(0,0,0,1)',
+        borderWidth: 2,
+        data: data,
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <h1>Bar Chart Example</h1>
+      <Bar
+        data={chartData}
+        options={{
+          title: {
+            display: true,
+            text: 'Bar Chart',
+            fontSize: 20,
+          },
+          legend: {
+            display: true,
+            position: 'right',
+          },
+        }}
+      />
+    </div>
+  );
+
 }
 
 export default App;

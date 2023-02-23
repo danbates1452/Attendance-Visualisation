@@ -7,3 +7,4 @@ pyyaml #YAML file support (for config)
 pandas #for data analysis / loading excel into dataframes
 openpyxl # opening excel files with pandas
 numpy # TODO: needed?
+flask_marshmallow #return schemas
