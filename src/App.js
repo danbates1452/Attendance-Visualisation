@@ -2,12 +2,37 @@ import React, {useState, useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {Bar} from 'react-chartjs-2';
-import {Chart as ChartJS} from 'chart.js/auto';
+import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
+function extractDataAndLabels(raw, scalar) {
+  let labels = [];
+  let data = [];
+  for (let key in raw) {
+    labels.push(key)
+    data.push(raw[key][scalar])
+  }
+  return [labels, data]
+}
 
-function BarChart({chartData}) {
-  return <Bar data={chartData} /*options={}*//>;
+function generateChartConfig(title, labels, datasets, options=[]) {
+  //TODO: add configuration options here, maybe create global ones
+  return {
+    title: title,
+    labels: labels,
+    datasets: datasets,
+    options: generateDatasetOptions(),
+  }
+}
+
+function generateDatasetOptions() {
+  return {
+
+  }
+}
+
+function BarChart(config) {
+  return <div><Bar data={config}/></div>
 }
 
 function Table({data}) {
@@ -132,51 +157,23 @@ function App() {
 
     fetchData();
   }, []);
-  let labels = [];
-  let data = [];
-  for (let key in snapshotData) {
-    labels.push(key)
-    data.push(snapshotData[key].teaching_attendance)
-  }
-
-  let fakeData = [1,3,4,7,8];
-  let fakeLabels = ['snap1', 'snap2', 'snap3', 'snap4'];
-
-  console.log(fakeData);
-  console.log(data);
-  console.log(fakeLabels);
-  console.log(labels);
+  const [labels, data] = extractDataAndLabels(snapshotData, 'teaching_attendance');
 
   const chartData = {
     labels: labels,
     datasets: [
       {
-        label: 'Data',
-        backgroundColor: 'rgba(75,192,192,1)',
-        borderColor: 'rgba(0,0,0,1)',
-        borderWidth: 2,
+        label: 'Teaching Sessions Attended',
         data: data,
+
       },
     ],
   };
 
   return (
-    <div>
-      <h1>Bar Chart Example</h1>
-      <Bar
-        data={chartData}
-        options={{
-          title: {
-            display: true,
-            text: 'Bar Chart',
-            fontSize: 20,
-          },
-          legend: {
-            display: true,
-            position: 'right',
-          },
-        }}
-      />
+    <div className='App'>
+      <h1>Bar Chart</h1>
+      <Bar data={chartData} />
     </div>
   );
 
