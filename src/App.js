@@ -5,6 +5,12 @@ import {Bar} from 'react-chartjs-2';
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
+/**
+ * Extracts data and labels from raw data for a particular scalar value in each entry
+ * @param {Array()} raw Raw API data, keys pointing to value arrays containing individual entries
+ * @param {String} scalar Individual Data point to extract for graphing
+ * @returns {Array()} 1D array with two values: labels and data, extracted from the raw data
+ */
 function extractDataAndLabels(raw, scalar) {
   let labels = [];
   let data = [];
