@@ -12,6 +12,7 @@ import axios from 'axios';
  * @returns {Array()} 1D array with two values: labels and data, extracted from the raw data
  */
 function extractDataAndLabels(raw, scalar) {
+  //todo: extend to extracting multiple scalar bits of data 
   let labels = [];
   let data = [];
   for (let key in raw) {
