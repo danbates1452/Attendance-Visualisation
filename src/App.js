@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {Bar} from 'react-chartjs-2';
+import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react-chartjs-2';
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
@@ -11,7 +11,7 @@ import axios from 'axios';
  * @param {String} scalar Individual Data point to extract for graphing
  * @returns {Array()} 1D array with two values: labels and data, extracted from the raw data
  */
-function extractDataAndLabels(raw, scalar) {
+/*function extractDataAndLabels(raw, scalar) {
   //todo: extend to extracting multiple scalar bits of data 
   let labels = [];
   let data = [];
@@ -20,7 +20,46 @@ function extractDataAndLabels(raw, scalar) {
     data.push(raw[key][scalar])
   }
   return [labels, data]
+}*/
+
+function extractDataAndLabels(raw, requestData) {
+  //todo: extend to extracting multiple scalar bits of data
+  let labels = [];
+  let data = [];
+  for (let key in raw) {
+    labels.push(key)
+    for (let req in requestData) {
+      data.push(raw[key][req])
+    }
+  }
+  return [labels, data]
 }
+
+function generateChartData(raw, details) {
+  let labels = [];
+  let extractedDetails = {};
+  for (let d in details) {
+    extractedDetails[details[d]] = []
+  }
+   for (let key in raw) {
+    //key = top level key of each dict
+    labels.push(key);
+    for (let d in extractedDetails) {
+      extractedDetails[d].push(raw[key][d]);
+    }
+  }
+  
+  let datasets = [];
+  for (let d in extractedDetails) {
+    datasets.push({label: d, data: extractedDetails[d]})
+  }
+  console.log(datasets);
+    
+  return {
+    labels: labels,
+    datasets: datasets
+  }
+  }
 
 function generateChartConfig(title, labels, datasets, options=[]) {
   //TODO: add configuration options here, maybe create global ones
@@ -104,54 +143,6 @@ return (
 
 
 function App() {
-  /*
-  //note: this will update rapidly though the data doesn't change
-  //TODO: investigate how to do this nicer
-  const [currentStudent, setCurrentStudent] = useState(0);
-
-  useEffect(() => {
-    fetch('/api/student/student_id/43437412').then(res => res.json()).then(data => {
-      setCurrentStudent([data.course_code, data.student_id, data.is_undergraduate, data.stage]);
-    }).catch((error) => {console.log(error)});
-  })
-/*
-  const [snapshotData, setSnapshotData] = useState(0);
-
-  useEffect(() => {
-    fetch('/api/snapshot/43437412')
-    .then(res => res.json())
-    .then(data => {
-      setSnapshotData(data.date)
-    })
-  }, []);
-  
-
-  const [, ] = useState({
-    labels: snapshots.map((data)=> data.date),
-    datasets: [
-      {
-        label: "Teaching Sessions Attended",
-        data: snapshots.map((data) => data.teaching_attendance)
-      }
-    ]
-  });
-*/
-//<BarChart chartData={snapshotData}/>
-//<p>{snapshots}</p>
-/*
-  return (
-    <div className="App">
-      <header className="App-header">
-        {Navigation()}
-      </header>
-      <div>
-        <StudentTable/>
-        {currentStudent}
-      </div>
-    </div>
-  );
-  */
-
   const [snapshotData, setData] = useState([]);
 
   useEffect(() => {
@@ -164,23 +155,14 @@ function App() {
 
     fetchData();
   }, []);
-  const [labels, data] = extractDataAndLabels(snapshotData, 'teaching_attendance');
 
-  const chartData = {
-    labels: labels,
-    datasets: [
-      {
-        label: 'Teaching Sessions Attended',
-        data: data,
-
-      },
-    ],
-  };
+  const rows = ['teaching_attendance', 'teaching_absence'];
+  const chartData = generateChartData(snapshotData, rows)
 
   return (
     <div className='App'>
-      <h1>Bar Chart</h1>
-      <Bar data={chartData} />
+      <h1>Chart</h1>
+      <Line data={chartData} />
     </div>
   );
 
