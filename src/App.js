@@ -162,7 +162,9 @@ function App() {
   return (
     <div className='App'>
       <h1>Chart</h1>
-      <Line data={chartData} />
+      <div className='SmallChart'>
+        <Line data={chartData} />
+      </div>
     </div>
   );
 
