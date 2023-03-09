@@ -5,37 +5,8 @@ import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
-/**
- * Extracts data and labels from raw data for a particular scalar value in each entry
- * @param {Array()} raw Raw API data, keys pointing to value arrays containing individual entries
- * @param {String} scalar Individual Data point to extract for graphing
- * @returns {Array()} 1D array with two values: labels and data, extracted from the raw data
- */
-/*function extractDataAndLabels(raw, scalar) {
-  //todo: extend to extracting multiple scalar bits of data 
-  let labels = [];
-  let data = [];
-  for (let key in raw) {
-    labels.push(key)
-    data.push(raw[key][scalar])
-  }
-  return [labels, data]
-}*/
-
-function extractDataAndLabels(raw, requestData) {
-  //todo: extend to extracting multiple scalar bits of data
-  let labels = [];
-  let data = [];
-  for (let key in raw) {
-    labels.push(key)
-    for (let req in requestData) {
-      data.push(raw[key][req])
-    }
-  }
-  return [labels, data]
-}
-
-function generateChartData(raw, details) {
+function ChartData(raw, details) {
+  //TODO: add configuration options here, maybe create global ones
   let labels = [];
   let extractedDetails = {};
   for (let d in details) {
@@ -53,84 +24,64 @@ function generateChartData(raw, details) {
   for (let d in extractedDetails) {
     datasets.push({label: d, data: extractedDetails[d]})
   }
-  console.log(datasets);
-    
-  return {
-    labels: labels,
-    datasets: datasets
-  }
-  }
 
-function generateChartConfig(title, labels, datasets, options=[]) {
-  //TODO: add configuration options here, maybe create global ones
   return {
-    title: title,
     labels: labels,
     datasets: datasets,
-    options: generateDatasetOptions(),
   }
 }
-
-function generateDatasetOptions() {
-  return {
-
-  }
-}
-
-function BarChart(config) {
-  return <div><Bar data={config}/></div>
-}
-
-function Table({data}) {
-  //TODO: extract headers and rows from data
-  let headers = {};
-  let rows = {};
-  return (
-    <table>
-      <thead>
-        {headers}
-      </thead>
-      <tbody>
-        {rows}
-      </tbody>
-    </table>
-  );
-}
-
-function StudentTable() {
+//functional component that handles fetching raw data from api
+function FetchAPIData(endpoint) {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    fetch('/api/student/student_id/43437412')
-      .then(response => response.json())
-      .then(data => setData(data));
+    const fetchData = async () => {
+      const result = await axios(
+        endpoint,
+      );
+      setData(result.data);
+    };
+    fetchData();
   }, []);
+  return data
+}
 
-  return (
-    <div>
-      <h1>Student 43437412</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Student ID</th>
-            <th>Level</th>
-            <th>Stage</th>
-            <th>Registration Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map(student => (
-            <tr key={student.student_id}>
-              <td>{student.student_id}</td>
-              <td>{student.is_undergraduate}</td>
-              <td>{student.stage}</td>
-              <td>{student.registration_status}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+function defaultScales() {
+  return 
+}
+
+function generateChartOptions(title, xTitle, yTitle) {
+  return {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        intersect: true
+      },
+      title: {
+        display: true,
+        text: title
+      }
+    },
+    hover: {
+      mode: 'index',
+      intersect: true
+    },
+    scales : {
+      x: {
+        title: {
+          display: true,
+          text: xTitle
+        }
+      },
+      y: {
+        title: {
+          display: true,
+          text: yTitle
+        }
+      }
+    }
+  }
 }
 
 function Navigation() {
@@ -141,29 +92,16 @@ return (
 );
 }
 
-
 function App() {
-  const [snapshotData, setData] = useState([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await axios(
-        '/api/snapshot/43437412',
-      );
-      setData(result.data);
-    };
-
-    fetchData();
-  }, []);
-
-  const rows = ['teaching_attendance', 'teaching_absence'];
-  const chartData = generateChartData(snapshotData, rows)
+  const student_id = 43437412;
+  const snapshotData = FetchAPIData('/api/snapshot/' + student_id);
 
   return (
     <div className='App'>
       <h1>Chart</h1>
       <div className='SmallChart'>
-        <Line data={chartData} />
+        <Line data={ChartData(snapshotData, ['teaching_attendance', 'teaching_absence'])} 
+              options={generateChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity')}/>
       </div>
     </div>
   );
