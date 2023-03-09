@@ -5,8 +5,23 @@ import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
+//functional component that handles fetching raw data from api
+function FetchAPIData(endpoint) {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await axios(
+        endpoint,
+      );
+      setData(result.data);
+    };
+    fetchData();
+  }, []);
+  return data
+}
+
 function ChartData(raw, details) {
-  //TODO: add configuration options here, maybe create global ones
   let labels = [];
   let extractedDetails = {};
   for (let d in details) {
@@ -30,27 +45,8 @@ function ChartData(raw, details) {
     datasets: datasets,
   }
 }
-//functional component that handles fetching raw data from api
-function FetchAPIData(endpoint) {
-  const [data, setData] = useState([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const result = await axios(
-        endpoint,
-      );
-      setData(result.data);
-    };
-    fetchData();
-  }, []);
-  return data
-}
-
-function defaultScales() {
-  return 
-}
-
-function generateChartOptions(title, xTitle, yTitle) {
+function ChartOptions(title, xTitle, yTitle) {
   return {
     responsive: true,
     plugins: {
@@ -92,16 +88,26 @@ return (
 );
 }
 
+function percentage(total, part) {
+  return (part / total) * 100
+}
+
+
 function App() {
   const student_id = 43437412;
   const snapshotData = FetchAPIData('/api/snapshot/' + student_id);
+
+  const chartData = ChartData(snapshotData, ['teaching_attendance', 'teaching_absence']);
+  const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
 
   return (
     <div className='App'>
       <h1>Chart</h1>
       <div className='SmallChart'>
-        <Line data={ChartData(snapshotData, ['teaching_attendance', 'teaching_absence'])} 
-              options={generateChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity')}/>
+        <Line data={chartData} options={chartOptions}/>
+      </div>
+      <div className='SmallChart'>
+        <Pie data={chartData} options={chartOptions}/>
       </div>
     </div>
   );
