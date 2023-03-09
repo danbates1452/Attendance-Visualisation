@@ -72,7 +72,7 @@ class StudentByCourseAPI(Resource):
 
     def get(self):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter_by(course_code=args.course_code))}
+        return row_to_dict(db.session.query(Student).filter_by(course_code=args.course_code))
 
 class StudentByStageAPI(Resource):
     def __init__(self):
@@ -81,7 +81,8 @@ class StudentByStageAPI(Resource):
     
     def get(self, stage):
         args = self.reqparse.parse_args()
-        return {student_query_to_dict(db.session.query(Student).filter_by(stage=stage))}
+        query = db.session.query(Student).filter_by(stage=stage)
+        return student_query_to_dict(query)
 
 class StudentByGradAPI(Resource):
     def __init__(self):
@@ -91,7 +92,7 @@ class StudentByGradAPI(Resource):
     def get(self, is_undergraduate):
         args = self.reqparse.parse_args()
         is_ug = strtobool(is_undergraduate)
-        return {row_to_dict(db.session.query(Student).filter_by(is_undergraduate=is_ug))}
+        return row_to_dict(db.session.query(Student).filter_by(is_undergraduate=is_ug))
 
 class SnapshotByIdStartEndAPI(Resource): #student_id, start_date, end_date
     def __init__(self):
@@ -139,7 +140,7 @@ class CourseByCodeAPI(Resource):
 
     def get(self, code):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Course).filter_by(code=code))}
+        return row_to_dict(db.session.query(Course).filter_by(code=code))
 
 class CourseByTitleAPI(Resource):
     def __init__(self):
@@ -148,7 +149,7 @@ class CourseByTitleAPI(Resource):
 
     def get(self, title):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Course).filter_by(title=title))}
+        return row_to_dict(db.session.query(Course).filter_by(title=title))
     
 # NOTE: Make sure resource endpoints are unique
 #filter student by course, stage, and graduate status
@@ -157,6 +158,7 @@ api.add_resource(StudentByStageAPI, '/api/student/stage/<int:stage>')
 api.add_resource(StudentByGradAPI, '/api/student/is_undergraduate/<is_undergraduate>')
 api.add_resource(StudentByIdAPI, '/api/student/student_id/<int:student_id>')
 
+#TODO: bring snapshot endpoints more in line with student and course
 api.add_resource(SnapshotByIdStartEndAPI, '/api/snapshot/<int:student_id>/<start_date>/<end_date>')
 api.add_resource(SnapshotByIdStartOnlyAPI, '/api/snapshot/<int:student_id>/<start_date>')
 api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
