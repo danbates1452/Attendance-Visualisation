@@ -81,7 +81,7 @@ class StudentByStageAPI(Resource):
     
     def get(self, stage):
         args = self.reqparse.parse_args()
-        return {row_to_dict(db.session.query(Student).filter_by(stage=stage))}
+        return {student_query_to_dict(db.session.query(Student).filter_by(stage=stage))}
 
 class StudentByGradAPI(Resource):
     def __init__(self):

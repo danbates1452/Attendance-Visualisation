@@ -17,6 +17,12 @@ def snapshot_query_to_dict(query):
         result[date] = row_to_dict(row)
     return result
 
+def student_query_to_dict(query):
+    result = {}
+    for row in query:
+        result[row.student_id] = row_to_dict(row)
+    return result
+
 def try_cast_int(i):
     if i is None:
         return None

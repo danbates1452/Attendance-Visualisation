@@ -107,7 +107,7 @@ function App() {
         <Line data={chartData} options={chartOptions}/>
       </div>
       <div className='SmallChart'>
-        <Pie data={chartData} options={chartOptions}/>
+        <Bar data={chartData} options={chartOptions}/>
       </div>
     </div>
   );
