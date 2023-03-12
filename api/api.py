@@ -2,7 +2,7 @@
 from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import yaml
@@ -165,15 +165,26 @@ class AggregateCourseAPI(Resource): #aggregated data for a whole course e.g. Com
         student_dict = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)) 
         
         # return aggregate data for every column in Snapshot
+        #query = db.session.query(
+        #    func.min(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('min'),
+        #    func.max(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('max'),
+        #    func.avg(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('avg'),
+        #    func.count(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('count')
+        #)
+
+        snapshot_dict = snapshot_query_to_dict(db.session.query(Snapshot).filter(Snapshot.student_id.in_(student_dict.keys())))
+        
         query = db.session.query(
-            func.min(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('min'),
-            func.max(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('max'),
-            func.avg(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('avg'),
-            func.count(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('count')
-        )
-        print(query[0])
-        print(type(query[0]))
-        names = ['min', 'max', 'avg', 'count']
+            func.min(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
+            func.max(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
+            func.avg(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
+            func.sum(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys()))
+        ).group_by(cast(Snapshot.date, Date))
+
+        for row in query:
+            print(row)
+
+        names = ['min', 'max', 'avg', 'sum']
         data = {}
         for i in range(len(names)):
             if (type(query[0][i]) == Decimal):
