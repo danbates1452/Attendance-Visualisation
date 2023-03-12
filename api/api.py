@@ -150,7 +150,35 @@ class CourseByTitleAPI(Resource):
     def get(self, title):
         args = self.reqparse.parse_args()
         return row_to_dict(db.session.query(Course).filter_by(title=title))
-    
+
+class AggregateDataAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        super(AggregateDataAPI, self).__init__()
+
+    def get(self):
+        args = self.reqparse.parse_args()
+        data_name = args['data']
+        if args['type'] == 'individual': #all snapshot data on individual, equivalent to running SnapshotByIdOnly
+
+            pass
+        elif args['type'] == 'degree-stage': #aggregated data for a whole degree & stage e.g. Computer Science - Year 3
+
+            pass
+        elif args['type'] == 'degree': #aggregated data for a whole degree e.g. Computer Science
+            #get list of students
+            pass
+        elif args['type'] == 'stage': #aggregated data for a whole stage e.g. Year 3
+            pass
+        elif args['type'] == 'department': #aggregated data for a whole department (group of degrees)
+            pass
+        elif args['type'] == 'school': #aggregated data for the whole school
+            pass
+        print(args)
+
+        pass
+
+
 # NOTE: Make sure resource endpoints are unique
 #filter student by course, stage, and graduate status
 api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
