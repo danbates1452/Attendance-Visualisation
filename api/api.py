@@ -8,7 +8,6 @@ from sqlalchemy.sql import func
 import yaml
 from distutils.util import strtobool
 from flask_marshmallow import Marshmallow
-import simplejson
 from decimal import Decimal
 
 # Project Modules
