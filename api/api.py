@@ -4,9 +4,12 @@ from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 import yaml
 from distutils.util import strtobool
 from flask_marshmallow import Marshmallow
+import simplejson
+from decimal import Decimal
 
 # Project Modules
 import pages
@@ -70,9 +73,9 @@ class StudentByCourseAPI(Resource):
         self.reqparse = reqparse.RequestParser()
         super(StudentByCourseAPI, self).__init__()
 
-    def get(self):
+    def get(self, course_code):
         args = self.reqparse.parse_args()
-        return row_to_dict(db.session.query(Student).filter_by(course_code=args.course_code))
+        return student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code))
 
 class StudentByStageAPI(Resource):
     def __init__(self):
@@ -151,33 +154,47 @@ class CourseByTitleAPI(Resource):
         args = self.reqparse.parse_args()
         return row_to_dict(db.session.query(Course).filter_by(title=title))
 
-class AggregateDataAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(AggregateDataAPI, self).__init__()
-
-    def get(self):
-        args = self.reqparse.parse_args()
-        data_name = args['data']
-        if args['type'] == 'individual': #all snapshot data on individual, equivalent to running SnapshotByIdOnly
-
-            pass
-        elif args['type'] == 'degree-stage': #aggregated data for a whole degree & stage e.g. Computer Science - Year 3
-
-            pass
-        elif args['type'] == 'degree': #aggregated data for a whole degree e.g. Computer Science
-            #get list of students
-            pass
-        elif args['type'] == 'stage': #aggregated data for a whole stage e.g. Year 3
-            pass
-        elif args['type'] == 'department': #aggregated data for a whole department (group of degrees)
-            pass
-        elif args['type'] == 'school': #aggregated data for the whole school
-            pass
-        print(args)
-
+# Aggregate Functions: Strictly Read-Only
+class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & stage e.g. Computer Science - Year 3
+    def get(self, course_code, stage):
         pass
 
+class AggregateCourseAPI(Resource): #aggregated data for a whole course e.g. Computer Science
+    def get(self, course_code):
+        #get list of students by their courses (like StudentByCourseAPI)
+        student_dict = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)) 
+        
+        # return aggregate data for every column in Snapshot
+        query = db.session.query(
+            func.min(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('min'),
+            func.max(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('max'),
+            func.avg(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('avg'),
+            func.count(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('count')
+        )
+        print(query[0])
+        print(type(query[0]))
+        names = ['min', 'max', 'avg', 'count']
+        data = {}
+        for i in range(len(names)):
+            if (type(query[0][i]) == Decimal):
+                data[names[i]] = str(query[0][i])
+            else: 
+                data[names[i]] = query[0][i]
+        return data
+
+class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 3
+    def get(self, stage):
+        pass
+
+class AggregateDepartmentAPI(Resource): #aggregated data for a whole department (group of degrees)
+    def get(self, department):
+        # department should be a list of degrees -> TODO: maybe make a table for this when you do UI
+        pass
+
+class AggregateSchoolAPI(Resource): #aggregated data for the whole school
+    def get(self):
+        #while only used in EngInf, just get all data
+        pass
 
 # NOTE: Make sure resource endpoints are unique
 #filter student by course, stage, and graduate status
@@ -193,6 +210,12 @@ api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
 
 api.add_resource(CourseByCodeAPI, '/api/course/code/<code>')
 api.add_resource(CourseByTitleAPI, '/api/course/title/<title>')
+
+api.add_resource(AggregateCourseStageAPI, '/api/aggregate/course_stage/<course_code>/<stage>')
+api.add_resource(AggregateCourseAPI, '/api/aggregate/course/<course_code>')
+api.add_resource(AggregateStageAPI, '/api/aggregate/stage/<int:stage>')
+api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>')
+api.add_resource(AggregateSchoolAPI, '/api/aggregate/school')
 # TODO: add search endpoint for each to allow for querying/searches direct from frontend
 # Database Setup
 db = SQLAlchemy(app)
