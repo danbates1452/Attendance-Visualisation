@@ -13,8 +13,8 @@ def row_to_dict(row):
 def snapshot_query_to_dict(query):
     result = {}
     for row in query:
-        date = row.date.isoformat()
-        result[date] = row_to_dict(row)
+        identifier = str(row.student_id) + '-' + str(row.year) + '-' + row.semester + '-' + str(row.week)
+        result[identifier] = row_to_dict(row)
     return result
 
 def student_query_to_dict(query):
@@ -35,7 +35,10 @@ def try_cast_int(i):
 
 class Snapshot(Schema):
     student_id = fields.Int()
-    date = fields.DateTime()
+    insert_datetime = fields.DateTime()
+    year = fields.Int()
+    semester = fields.Str()
+    week = fields.Int()
     registration_status = fields.Str()
     teaching_sessions = fields.Int()
     teaching_attendance = fields.Int()
@@ -64,6 +67,6 @@ class CourseSchema(Schema):
 
 class StudentSchema(Schema):
     student_id = fields.Int()
-    is_undergraduate = fields.Bool()
+    level = fields.Str()
     stage = fields.Int()
     course_code = fields.Str()

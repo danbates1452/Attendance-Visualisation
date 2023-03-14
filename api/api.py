@@ -95,32 +95,35 @@ class StudentByLevelAPI(Resource):
         args = self.reqparse.parse_args()
         level = strtobool(level)
         return row_to_dict(db.session.query(Student).filter_by(level=level))
-# TODO: REWRITE Snapshot date dependent API endpoints to rely on (Years and Semesters), and (Years, Semesters, and Weeks) instead
-class SnapshotByIdStartEndAPI(Resource): #student_id, start_date, end_date
+
+class SnapshotByIdYearSemesterWeekAPI(Resource): #student_id, year, semester, week
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        super(SnapshotByIdStartEndAPI, self).__init__()
-
-    def get(self, student_id, start_date, end_date):
-        args = self.reqparse.parse_args()      
-        query = db.session.query(Snapshot).filter(
-            db.Snapshot.student_id == student_id,
-            db.Snapshot.date >= start_date,
-            db.Snapshot.date <= end_date
+        super(SnapshotByIdYearSemesterWeekAPI, self).__init__()
+    
+    def get(self, student_id, year, semester, week):
+        query = db.session.query(Snapshot).filter_by(
+            student_id=student_id,
+            year=year,
+            semester=semester,
+            week=week
         )
         return snapshot_query_to_dict(query)
 
+class SnapshotByIdYearSemesterAPI(Resource): #student_id, year, semester
+    def get(self, student_id, year, semester):  
+        query = db.session.query(Snapshot).filter_by(
+            student_id=student_id,
+            year=year,
+            semester=semester
+        )
+        return snapshot_query_to_dict(query)
 
-class SnapshotByIdStartOnlyAPI(Resource): #student_id, start_date
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(SnapshotByIdStartOnlyAPI, self).__init__()
-
-    def get(self, student_id, start_date):
-        args = self.reqparse.parse_args()
-        query = db.session.query(Snapshot).filter(
-            db.Snapshot.student_id==student_id, 
-            db.Snapshot.date == start_date
+class SnapshotByIdYearAPI(Resource): #student_id, year
+    def get(self, student_id, year):
+        query = db.session.query(Snapshot).filter_by(
+            student_id=student_id,
+            year=year
         )
         return snapshot_query_to_dict(query)
 
@@ -133,7 +136,6 @@ class SnapshotByIdOnlyAPI(Resource): #student_id
         args = self.reqparse.parse_args()
         query = db.session.query(Snapshot).filter_by(student_id=student_id)
         return snapshot_query_to_dict(query)
-
 
 class CourseByCodeAPI(Resource):
     def __init__(self):
@@ -154,6 +156,20 @@ class CourseByTitleAPI(Resource):
         return row_to_dict(db.session.query(Course).filter_by(title=title))
 
 # Aggregate Functions: Strictly Read-Only
+def getAggregateDataFromQuery(query, agg=['min', 'max', 'avg', 'sum']):
+    data = {}
+    for r, row in enumerate(query):
+        row_data = {}
+        for i in range(len(agg)):
+            if (type(query[0][i]) == Decimal):
+                row_data[agg[i]] = str(row[i])
+            else: 
+                row_data[agg[i]] = row[i]
+        data[r] = row_data
+    return data
+
+#def aggregate
+
 class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & stage e.g. Computer Science - Year 3
     def get(self, course_code, stage):
         pass
@@ -161,36 +177,23 @@ class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & s
 class AggregateCourseAPI(Resource): #aggregated data for a whole course e.g. Computer Science
     def get(self, course_code):
         #get list of students by their courses (like StudentByCourseAPI)
-        student_dict = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)) 
-        
-        # return aggregate data for every column in Snapshot
-        #query = db.session.query(
-        #    func.min(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('min'),
-        #    func.max(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('max'),
-        #    func.avg(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('avg'),
-        #    func.count(Snapshot.teaching_attendance).filter(Snapshot.student_id.in_(student_dict.keys())).label('count')
-        #)
+        student_list = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)).keys()
+        #get one expansive dictionary of snapshots for each student in student_list
+        snapshot_dict = snapshot_query_to_dict(db.session.query(Snapshot).filter(Snapshot.student_id.in_(student_list)))
 
-        snapshot_dict = snapshot_query_to_dict(db.session.query(Snapshot).filter(Snapshot.student_id.in_(student_dict.keys())))
+        insert_datetimes = [sd['insert_datetime'] for sd in snapshot_dict.values()] #used here purely as a unique identifier for individual snapshots that already exists in the db 
         
         query = db.session.query(
-            func.min(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
-            func.max(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
-            func.avg(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys())),
-            func.sum(Snapshot.teaching_attendance).filter(Snapshot.date.in_(snapshot_dict.keys()))
-        ).group_by(cast(Snapshot.date, Date))
-
+            func.min(Snapshot.teaching_attendance).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
+            func.max(Snapshot.teaching_attendance).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
+            func.avg(Snapshot.teaching_attendance).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
+            func.sum(Snapshot.teaching_attendance).filter(Snapshot.insert_datetime.in_(insert_datetimes))
+        ).group_by(cast(Snapshot.insert_datetime, Date), Snapshot.week)
         for row in query:
             print(row)
+        return getAggregateDataFromQuery(query)
 
-        names = ['min', 'max', 'avg', 'sum']
-        data = {}
-        for i in range(len(names)):
-            if (type(query[0][i]) == Decimal):
-                data[names[i]] = str(query[0][i])
-            else: 
-                data[names[i]] = query[0][i]
-        return data
+# TODO: make a AverageCourseAPI which gets an average (e.g. attendance) of a course over time
 
 class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 3
     def get(self, stage):
@@ -214,8 +217,9 @@ api.add_resource(StudentByLevelAPI, '/api/student/level/<level>')
 api.add_resource(StudentByIdAPI, '/api/student/student_id/<int:student_id>')
 
 #TODO: bring snapshot endpoints more in line with student and course
-api.add_resource(SnapshotByIdStartEndAPI, '/api/snapshot/<int:student_id>/<start_date>/<end_date>')
-api.add_resource(SnapshotByIdStartOnlyAPI, '/api/snapshot/<int:student_id>/<start_date>')
+api.add_resource(SnapshotByIdYearSemesterWeekAPI, '/api/snapshot/<int:student_id>/<int:year>/<semester>/<int:week>')
+api.add_resource(SnapshotByIdYearSemesterAPI, '/api/snapshot/<int:student_id>/<int:year>/<semester>')
+api.add_resource(SnapshotByIdYearAPI, '/api/snapshot/<int:student_id>/<int:year>')
 api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
 
 api.add_resource(CourseByCodeAPI, '/api/course/code/<code>')
@@ -279,13 +283,19 @@ class Student(db.Model):
     snapshots = relationship('Snapshot', backref = 'Student')  # snapshots, One-To-Many
     course = relationship('Course', foreign_keys='Student.course_code')
 
-with app.app_context():
-    #db.drop_all()
-    #db.create_all()
-    #db.session.commit()
-    #from excel_import import excel_to_db
-    #excel_to_db('./sample_data.xlsx', db, 2017, 'Autumn', 0)
-    pass
+upload_db = False
+#upload_db = True #only uncomment to reupload the entire development dataset
+if upload_db:
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+        db.session.commit()
+        from excel_import import excel_to_db
+        #excel_to_db('./sample_data.xlsx', db, 2017, 'Autumn', -1)
+        excel_to_db('./sample_snapshot1.xlsx', db, 2017, 'Autumn', 3)
+        excel_to_db('./sample_snapshot2.xlsx', db, 2017, 'Autumn', 6)
+        excel_to_db('./sample_snapshot3.xlsx', db, 2017, 'Autumn', 9)
+        excel_to_db('./sample_snapshot4.xlsx', db, 2017, 'Autumn', 11)
 
 if __name__ == '__main__':
     app.run()
