@@ -86,16 +86,16 @@ class StudentByStageAPI(Resource):
         query = db.session.query(Student).filter_by(stage=stage)
         return student_query_to_dict(query)
 
-class StudentByGradAPI(Resource):
+class StudentByLevelAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        super(StudentByGradAPI, self).__init__()
+        super(StudentByLevelAPI, self).__init__()
     
-    def get(self, is_undergraduate):
+    def get(self, level):
         args = self.reqparse.parse_args()
-        is_ug = strtobool(is_undergraduate)
-        return row_to_dict(db.session.query(Student).filter_by(is_undergraduate=is_ug))
-
+        level = strtobool(level)
+        return row_to_dict(db.session.query(Student).filter_by(level=level))
+# TODO: REWRITE Snapshot date dependent API endpoints to rely on (Years and Semesters), and (Years, Semesters, and Weeks) instead
 class SnapshotByIdStartEndAPI(Resource): #student_id, start_date, end_date
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -210,7 +210,7 @@ class AggregateSchoolAPI(Resource): #aggregated data for the whole school
 #filter student by course, stage, and graduate status
 api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
 api.add_resource(StudentByStageAPI, '/api/student/stage/<int:stage>')
-api.add_resource(StudentByGradAPI, '/api/student/is_undergraduate/<is_undergraduate>')
+api.add_resource(StudentByLevelAPI, '/api/student/level/<level>')
 api.add_resource(StudentByIdAPI, '/api/student/student_id/<int:student_id>')
 
 #TODO: bring snapshot endpoints more in line with student and course
@@ -233,7 +233,10 @@ db = SQLAlchemy(app)
 class Snapshot(db.Model):
     __tablename__ = "Snapshot"
     student_id = Column(Integer, ForeignKey("Student.student_id"), primary_key=True, nullable=False)
-    date = Column(DateTime, primary_key=True, nullable=False)
+    year = Column(Integer, nullable=False) # year of snapshot (e.g. 2023)
+    semester = Column(String, nullable=False, default='Outside Teaching Time')  # Semester 'Autumn', or 'Spring' typically
+    week = Column(String, nullable=False, default='0') # week of snapshot (e.g. Week 8, Spring Semester, 2023)
+    insert_datetime = Column(DateTime, primary_key=True, nullable=False)
     registration_status = Column(String)
     # Teaching
     teaching_sessions = Column(Integer)  # Teaching Sessions Assigned
@@ -269,7 +272,7 @@ class Course(db.Model):
 class Student(db.Model):
     __tablename__ = 'Student'
     student_id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
-    is_undergraduate = Column(Boolean, nullable=False) # True = Undergraduate, False = Postgraduate Taught
+    level = Column(String, nullable=False) # True = Undergraduate, False = Postgraduate Taught
     stage = Column(Integer, nullable=False)
     course_code = Column(String, ForeignKey(Course.code), nullable=False) # course_code, One-To-One
     # Relationships
@@ -277,11 +280,11 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
-    #db.drop_all()
-    #db.create_all()
-    #db.session.commit()
-    #from excel_import import excel_to_db
-    #excel_to_db('./sample_data.xlsx', db)
+    db.drop_all()
+    db.create_all()
+    db.session.commit()
+    from excel_import import excel_to_db
+    excel_to_db('./sample_data.xlsx', db, 2017, 'Autumn', 0)
     pass
 
 if __name__ == '__main__':

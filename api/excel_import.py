@@ -8,7 +8,7 @@ from helper_methods import *
 # NOTE: You must upload only ONE Snapshot at a time, as there is no way to tell them apart,
 # and they will be treated as one snapshot, ignoring earlier entries if there is a later entry for the same
 # student
-def excel_to_db(filename, db):
+def excel_to_db(filename, db, year, semester, week):
     from api import Student, Snapshot, Course # avoiding mutual import issues by importing classes only here
     # todo: check if file exists - throw exception if not, or if there is an issue in reading
     df = pd.read_excel(get_absolute_path(filename))
@@ -23,7 +23,7 @@ def excel_to_db(filename, db):
         # name = row[index] #Original Name
 
         student_id = int(row[0]) #User
-        is_undergraduate = True if row[1] == "UG" else False #Level of Study
+        level = row[1] #Level of Study
         stage = int(row[2]) #Year of Course
         registration_status = row[3] #Registration Status
         title = row[4] #Course Title
@@ -49,7 +49,8 @@ def excel_to_db(filename, db):
         # row index 25 is a percentage
         academic_advising_last = row[26] #Last Attended (AA)
 
-        date = datetime.now() # insertion date & time, for keeping track of snapshots
+
+        insert_datetime = datetime.now() # insertion date & time, for keeping track of snapshots
 
         # Adding Courses, Students, then Snapshots in that order
         # as Snapshots depend on a foreign key of Students which depends on a foreign key of Course
@@ -63,29 +64,32 @@ def excel_to_db(filename, db):
         if db.session.query(Student).filter_by(student_id=student_id).first() is not None:
             # Student already exists -> update existing student
             updated_student = db.session.query(Student).filter_by(student_id=student_id).first()
-            updated_student.is_undergraduate = is_undergraduate
+            updated_student.level = level
             updated_student.stage = stage
             updated_student.course_code = code
 
             db.session.add(updated_student)
 
-            date = datetime.now() # If we have a repeat student it is likely that this is a new snapshot we're parsing
+            insert_datetime = datetime.now() # If we have a repeat student it is likely that this is a new snapshot we're parsing
             # so we set a new datetime for this snapshot to be distinct from the last
         else:
             # Student does not exist -> create new student
             new_student = Student(
                 student_id=student_id,
-                is_undergraduate=is_undergraduate,
+                level=level,
                 stage=stage,
                 course_code=code
             )
             db.session.add(new_student)
 
         # if snapshot does not already exist
-        if db.session.query(Snapshot.student_id).filter_by(student_id=student_id, date=date).first() is None:
+        if db.session.query(Snapshot.student_id).filter_by(student_id=student_id, insert_datetime=insert_datetime).first() is None:
             new_snapshot = Snapshot(
                 student_id=student_id,
-                date=date,
+                year=year,
+                semester=semester,
+                week=week,
+                insert_datetime=insert_datetime,
                 registration_status=registration_status,
 
                 teaching_sessions=teaching_sessions,
