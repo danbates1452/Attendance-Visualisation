@@ -280,11 +280,11 @@ class Student(db.Model):
     course = relationship('Course', foreign_keys='Student.course_code')
 
 with app.app_context():
-    db.drop_all()
-    db.create_all()
-    db.session.commit()
-    from excel_import import excel_to_db
-    excel_to_db('./sample_data.xlsx', db, 2017, 'Autumn', 0)
+    #db.drop_all()
+    #db.create_all()
+    #db.session.commit()
+    #from excel_import import excel_to_db
+    #excel_to_db('./sample_data.xlsx', db, 2017, 'Autumn', 0)
     pass
 
 if __name__ == '__main__':
