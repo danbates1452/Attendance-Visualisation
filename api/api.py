@@ -213,12 +213,15 @@ def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
     data = {}
     for r, row in enumerate(query):
         row_data = {}
-        for i in range(len(agg)):
-            if (type(query[0][i]) == Decimal):
-                row_data[agg[i]] = str(row[i])
-            else: 
-                row_data[agg[i]] = row[i]
-        data[r] = row_data
+        for i in range(len(agg) + 1):
+            if i == 0:
+                week = row[i]
+            else:
+                if (type(row[i]) == Decimal):
+                    row_data[agg[i - 1]] = str(row[i])
+                else: 
+                    row_data[agg[i - 1]] = row[i]
+        data[week] = row_data
     return data
 
 def getAggregateData(
@@ -247,6 +250,7 @@ def getAggregateData(
     output_dict = {}
     for name, attribute in attributes.items():
         query = db.session.query(
+            Snapshot.week,
             func.min(attribute).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
             func.max(attribute).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
             func.avg(attribute).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
@@ -275,73 +279,66 @@ class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 
 class AggregateDepartmentAPI(Resource): #aggregated data for a whole department (group of courses)
     def get(self, department):
         # department should be a list of degrees -> TODO: maybe make a table for this when you do UI
-
-        '''
-        code	title
-        G5Q32T	Intel and Adap Sys
-        H5001U	Elecl Eng and Elecc Eng
-        H3006U	Mechanical Engineering
-        G5001U	Computer Science
-        H3002U	Mechanical Engineering
-        H9001U	Eng (FDN)
-        G41F0U	Comp Sci (IP)
-        H7006U	Product Design (IP)
-        H34F0U	Mechanical Engineering (IP)
-        H3501T	Adv Mech Eng
-        G45F0U	Comp for Dig Med (IP)
-        G5020U	Computing for Digital Media
-        GH561U	Computing for Bus and Mgmt
-        H6008U	E and E Eng with Robotics IPY
-        G44F0U	Comp for Bus and Mgmt (IP)
-        H7003U	Product Design
-        P4503T	Computing with Digital Media
-        H9000T	Engineering Business Managemnt
-        G5005U	Comp Sci and AI
-        H6001U	Computer Engineering
-        H5002U	Elecl Eng and Elecc Eng
-        H3020U	Automotive Engineering (IP)
-        G5511T	Mgmt of IT
-        G41F1U	Comp Sci (IP)
-        G5009U	Comp Sci (FDN)
-        H7504T	IT with Bus and Mgmt
-        H3014U	Automotive Engineering
-        G42F0U	Comp Sci and AI (IP)
-        G4010U	Computer Science
-        H32F0U	Mechanical Engineering (IP)
-        YY003U	V&E - Informatics
-        H3025U	Automotive Engineering (IP)
-        G46F0U	GAME (IP)
-        H34F1U	Mechanical Engineering (IP)
-        W2002U	Crtve Tech and Dgn with FY
-        G5509T	Advanced Computer Science
-        G5027U	GAME
-        H3012U	Automotive Engineering
-        G40F0U	Comp Sci (IP)
-        H3019U	Automotive Engineering (IP)
-        H3008U	Mechanical Engineering (YAB)
-        H6009U	E and E Eng with Robotics
-        H6517T	Robotics and Autonomous Sy
-        H61F0U	Elecl Eng and Elecc Eng (IP)
-        H6510T	Embedded Digital Systems
-        H61F1U	Elecl Eng and Elecc Eng (IP)
-        H6518T	Robotics and Autonomous System
-        H35F0U	Mech Eng (IP Yr 4)
-        H60F0U	Elecl Eng and Elecc Eng (IP)
-        H6519T	Robotics and Autonomous System
-        YY002U	V&E - Engineering and Design
-        H7011U	Product Design (YAB)
-        H6006U	Computer Engineering
-        G5006U	Computer Science (YAB)
-        H63F0U	Computer Engineering (IP)
-        '''
-        if department == 'informatics' or department == 'inf':
+        if department.lower() == 'informatics' or department.lower() == 'inf':
             course_list = [
-                '',
-                
+                'G4010U',
+                'G40F0U',
+                'G41F0U',
+                'G41F1U',
+                'G42F0U',
+                'G44F0U',
+                'G45F0U',
+                'G46F0U',
+                'G5001U',
+                'G5005U',
+                'G5006U',
+                'G5009U',
+                'G5020U',
+                'G5027U',
+                'G5509T',
+                'G5511T',
+                'G5Q32T',
+                'GH561U',
+                'H7504T',
+                'P4503T',
+                'YY003U'
             ]
-        elif department == 'engineering' or department == 'eng':
+        elif department.lower() == 'engineering' or department.lower() == 'eng':
             course_list = [
-                
+                'H3002U',
+                'H3006U',
+                'H3008U',
+                'H3012U',
+                'H3014U',
+                'H3019U',
+                'H3020U',
+                'H3025U',
+                'H32F0U',
+                'H34F0U',
+                'H34F1U',
+                'H3501T',
+                'H35F0U',
+                'H5001U',
+                'H5002U',
+                'H6001U', # 'Computer Engineering'?
+                'H6006U', # 'Computer Engineering'?
+                'H6008U',
+                'H6009U',
+                'H60F0U',
+                'H61F0U',
+                'H61F1U',
+                'H63F0U', # 'Computer Engineering (IP)'?
+                'H6510T',
+                'H6517T',
+                'H6518T',
+                'H6519T',
+                'H7003U',
+                'H7006U',
+                'H7011U',
+                'H9000T',
+                'H9001U',
+                'W2002U', # 'Crtve Tech and Dgn with FY'?
+                'YY002U'
             ]
         else:
             return {'message': 'Invalid department'}

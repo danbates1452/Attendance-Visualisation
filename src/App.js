@@ -28,7 +28,7 @@ function ExtractChartData(raw, details) {
   for (let d in details) {
     extractedDetails[details[d]] = []
   }
-   for (let key in raw) {
+  for (let key in raw) {
     //key = top level key of each dict
     labels.push('Week ' + raw[key]['week']);
     for (let d in extractedDetails) {
@@ -46,6 +46,23 @@ function ExtractChartData(raw, details) {
     datasets: datasets,
   }
 }
+/*
+function ExtractAggregateData(raw, details) {
+  let labels = [];
+  let extractedDetails = {};
+
+  for (let d in details) {
+    extractedDetails[details[d]] = []
+  }
+
+  for (let key in raw) {
+    labels.push('Week' + raw['key'])
+    if (details.includes(key)) {
+      
+    }
+  }
+  
+}*/
 
 function ChartOptions(title, xTitle, yTitle) {
   return {
@@ -117,12 +134,29 @@ function percentage(total, part) {
 }
 
 function App() {
-  const student_id = 43437412;
+  //const student_id = 43437412;
   //const apiData = FetchAPIData('/api/snapshot/' + student_id); #snapshot
-  const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U')
+  const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U');
+  console.log(apiData);
+  /*console.log(ExtractAggregateData(apiData, [
+    'teaching_sessions',
+    'teaching_attendance', 
+    'teaching_explained_absence',
+    'teaching_absence',
+    'assessments',
+    'assessment_submission',
+    'assessment_explained_non_submission',
+    'assessment_non_submission',
+    'assessment_in_late_period',
+    'academic_advising_sessions',
+    'academic_advising_attendance',
+    'academic_advising_explained_absence',
+    'academic_advising_absence',
+    'academic_advising_not_recorded'
+  ]));*/
   const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
   //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
- 
+
   const chartOptions = ChartOptions('Attendance', 'Snapshots', 'Quantity');
 
   return (
