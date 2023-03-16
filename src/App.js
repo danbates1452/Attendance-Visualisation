@@ -22,7 +22,7 @@ function FetchAPIData(endpoint) {
   return data
 }
 
-function ExtractChartData(raw, details) {
+function ExtractChartData(raw, details, subvalue='None') {
   let labels = [];
   let extractedDetails = {};
   for (let d in details) {
@@ -30,9 +30,17 @@ function ExtractChartData(raw, details) {
   }
   for (let key in raw) {
     //key = top level key of each dict
-    labels.push('Week ' + raw[key]['week']);
+    if (subvalue === 'None') {
+      labels.push('Week ' + raw[key]['week']);
+    }
+    
     for (let d in extractedDetails) {
-      extractedDetails[d].push(raw[key][d]);
+      if (subvalue === 'None') {
+        extractedDetails[d].push(raw[key][d]);
+      } else {
+        extractedDetails[d].push(raw[key][d][subvalue]);
+        labels.push(d)
+      }
     }
   }
   
@@ -46,23 +54,38 @@ function ExtractChartData(raw, details) {
     datasets: datasets,
   }
 }
-/*
-function ExtractAggregateData(raw, details) {
+
+function ExtractAggregateData(raw, details, subvalue) {
   let labels = [];
   let extractedDetails = {};
 
   for (let d in details) {
     extractedDetails[details[d]] = []
+  } 
+
+  for (let key in raw) { //e.g. 'teaching_sessions'
+    for (let week in raw[key]) {
+      if (Object.keys(raw)[0] === key) { //if first attribute
+        labels.push('Week ' + week);
+      }
+
+      if (details.includes(key)) {
+        extractedDetails[key].push(raw[key][week][subvalue]);
+      }
+    }    
   }
 
-  for (let key in raw) {
-    labels.push('Week' + raw['key'])
-    if (details.includes(key)) {
-      
-    }
+  let datasets = [];
+  for (let d in extractedDetails) {
+    datasets.push({label: d, data: extractedDetails[d]})
+  }
+
+  return {
+    labels: labels,
+    datasets: datasets,
   }
   
-}*/
+}
 
 function ChartOptions(title, xTitle, yTitle) {
   return {
@@ -137,8 +160,8 @@ function App() {
   //const student_id = 43437412;
   //const apiData = FetchAPIData('/api/snapshot/' + student_id); #snapshot
   const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U');
-  console.log(apiData);
-  /*console.log(ExtractAggregateData(apiData, [
+  //const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
+  const chartData = ExtractAggregateData(apiData, [
     'teaching_sessions',
     'teaching_attendance', 
     'teaching_explained_absence',
@@ -153,8 +176,9 @@ function App() {
     'academic_advising_explained_absence',
     'academic_advising_absence',
     'academic_advising_not_recorded'
-  ]));*/
-  const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
+  ], 'avg');
+  //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance'], 'avg');
+
   //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
 
   const chartOptions = ChartOptions('Attendance', 'Snapshots', 'Quantity');
