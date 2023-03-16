@@ -342,7 +342,7 @@ class AggregateDepartmentAPI(Resource): #aggregated data for a whole department 
             ]
         else:
             return {'message': 'Invalid department'}
-        student_list = student_query_to_dict(db.session.query(Student).filter(db.Student.course_code.in_(course_list)))
+        student_list = student_query_to_dict(db.session.query(Student).filter(Student.course_code.in_(course_list)))
         return getAggregateData(student_list)
 
 class AggregateSchoolAPI(Resource): #aggregated data for the whole school

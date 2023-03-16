@@ -159,7 +159,8 @@ function percentage(total, part) {
 function App() {
   //const student_id = 43437412;
   //const apiData = FetchAPIData('/api/snapshot/' + student_id); #snapshot
-  const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U');
+  //const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U');
+  const apiData = FetchAPIData('/api/aggregate/department/informatics');
   //const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
   const chartData = ExtractAggregateData(apiData, [
     'teaching_sessions',
@@ -177,7 +178,7 @@ function App() {
     'academic_advising_absence',
     'academic_advising_not_recorded'
   ], 'avg');
-  //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance'], 'avg');
+  //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance', 'teaching_absence', 'teaching_explained_absence'], 'sum');
 
   //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
 
