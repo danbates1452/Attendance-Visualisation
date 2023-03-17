@@ -48,6 +48,7 @@ ma = Marshmallow(app)
 # Database Setup
 db = SQLAlchemy(app)
 
+# Snapshot Model
 class Snapshot(db.Model):
     __tablename__ = "Snapshot"
     student_id = Column(Integer, ForeignKey("Student.student_id"), primary_key=True, nullable=False)
@@ -80,13 +81,13 @@ class Snapshot(db.Model):
     # Relationships
     # student = relationship("Student", back_populates = "snapshots")
 
-
+# Course Model
 class Course(db.Model):
     __tablename__ = "Course"
     code = Column(String, primary_key=True)
     title = Column(String, nullable=False)
 
-
+# Student Model
 class Student(db.Model):
     __tablename__ = 'Student'
     student_id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
@@ -104,7 +105,7 @@ class APIResource(Resource): # TODO: experiment to see if we can avoid repetitiv
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         super(APIResource, self).__init__()
-
+# Student APIs
 class StudentByIdAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -149,6 +150,7 @@ class StudentByLevelAPI(Resource):
         level = strtobool(level)
         return row_to_dict(db.session.query(Student).filter_by(level=level))
 
+# Snapshot APIs
 class SnapshotByIdYearSemesterWeekAPI(Resource): #student_id, year, semester, week
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -190,6 +192,7 @@ class SnapshotByIdOnlyAPI(Resource): #student_id
         query = db.session.query(Snapshot).filter_by(student_id=student_id)
         return snapshot_query_to_dict(query)
 
+# Course APIs
 class CourseByCodeAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -207,6 +210,10 @@ class CourseByTitleAPI(Resource):
     def get(self, title):
         args = self.reqparse.parse_args()
         return row_to_dict(db.session.query(Course).filter_by(title=title))
+
+class CoursesAPI(Resource):
+    def get(self):
+        return row_to_dict(db.session.query(Course).all())
 
 # Aggregate Functions: Strictly Read-Only
 def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
@@ -258,7 +265,6 @@ def getAggregateData(
         ).group_by(cast(Snapshot.insert_datetime, Date), Snapshot.week)
         output_dict[name] = formatAggregateData(query)
     return output_dict
-    
 
 class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & stage e.g. Computer Science - Year 3
     def get(self, course_code, stage):
@@ -352,26 +358,31 @@ class AggregateSchoolAPI(Resource): #aggregated data for the whole school
         return getAggregateData(student_list) 
 
 # NOTE: Make sure resource endpoints are unique
-#filter student by course, stage, and graduate status
+
+#get students by course, stage, and graduate status
 api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
 api.add_resource(StudentByStageAPI, '/api/student/stage/<int:stage>')
 api.add_resource(StudentByLevelAPI, '/api/student/level/<level>')
 api.add_resource(StudentByIdAPI, '/api/student/student_id/<int:student_id>')
 
-#TODO: bring snapshot endpoints more in line with student and course
+#get snapshots from student_id and optionally year, semester, and week
 api.add_resource(SnapshotByIdYearSemesterWeekAPI, '/api/snapshot/<int:student_id>/<int:year>/<semester>/<int:week>')
 api.add_resource(SnapshotByIdYearSemesterAPI, '/api/snapshot/<int:student_id>/<int:year>/<semester>')
 api.add_resource(SnapshotByIdYearAPI, '/api/snapshot/<int:student_id>/<int:year>')
 api.add_resource(SnapshotByIdOnlyAPI, '/api/snapshot/<int:student_id>')
 
+#get course from title or code, or get all courses
 api.add_resource(CourseByCodeAPI, '/api/course/code/<code>')
 api.add_resource(CourseByTitleAPI, '/api/course/title/<title>')
+api.add_resource(CoursesAPI, '/api/courses')
 
+#get aggregate data based on snapshots from course and stage, course, stage, department, or 'school' (all snapshots)
 api.add_resource(AggregateCourseStageAPI, '/api/aggregate/course_stage/<course_code>/<stage>')
 api.add_resource(AggregateCourseAPI, '/api/aggregate/course/<course_code>')
-api.add_resource(AggregateStageAPI, '/api/aggregate/stage/<int:stage>')
+api.add_resource(AggregateStageAPI, '/api/aggregate/stage/<int:stage>') 
 api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>') # whole departments - slow query
 api.add_resource(AggregateSchoolAPI, '/api/aggregate/school') #whole school - VERY slow query
+
 # TODO: add search endpoint for each to allow for querying/searches direct from frontend
 
 ### Database uploading / app boilerplate
