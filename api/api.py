@@ -357,6 +357,45 @@ class AggregateSchoolAPI(Resource): #aggregated data for the whole school
         student_list = student_query_to_dict(db.session.query(Student).all())
         return getAggregateData(student_list) 
 
+# Filterable Table Requests
+student_filters = {
+    'student_id': Student.student_id,
+    'level': Student.level,
+    'stage': Student.stage,
+    'course_code': Student.course_code #TODO: could probably add course title to this too via an extra db request
+    # TODO: add insert date, modified last date once they're in the db
+    # TODO: (COULD) add stuff like 'registration status' and others based on most recent snapshot
+}
+
+class FilterStudentAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        for name, value in student_filters.items():
+            #all attributes are optional and can have multiple entries
+            self.reqparse.add_argument(name, action='append', required=False, location='args') 
+        super(FilterStudentAPI, self).__init__()
+
+    def get(self):
+        args = self.reqparse.parse_args()
+        # TODO: if no filters applied, return (a paginated amount of) all students
+        # TODO: built array, provide array to query, return query
+        print(args)
+        query = db.session.query(Student)
+        for key in args:
+            if key in student_filters and args[key] is not None:
+                print(key)
+                print(args[key])
+                query = query.filter(student_filters[key].in_(args[key]))
+        return student_query_to_dict(query)
+    
+
+#snapshot_filters = {
+
+#}
+
+#class FilterSnapshotAPI(Resource):
+
+
 # NOTE: Make sure resource endpoints are unique
 
 #get students by course, stage, and graduate status
@@ -384,6 +423,7 @@ api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>
 api.add_resource(AggregateSchoolAPI, '/api/aggregate/school') #whole school - VERY slow query
 
 # TODO: add search endpoint for each to allow for querying/searches direct from frontend
+api.add_resource(FilterStudentAPI, '/api/filter/student') #Uses reqparse args
 
 ### Database uploading / app boilerplate
 
@@ -399,7 +439,7 @@ if upload_db:
         excel_to_db('./sample_snapshot1.xlsx', db, 2017, 'Autumn', 3)
         excel_to_db('./sample_snapshot2.xlsx', db, 2017, 'Autumn', 6)
         excel_to_db('./sample_snapshot3.xlsx', db, 2017, 'Autumn', 9)
-        excel_to_db('./sample_snapshot4.xlsx', db, 2017, 'Autumn', 11)
+        excel_to_db('./sample_snapshot4.xlsx', db, 2017, 'Autumn', 12) #Note: Modern data will have only 11 weeks
 
 if __name__ == '__main__':
     app.run()
