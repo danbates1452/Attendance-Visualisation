@@ -421,7 +421,7 @@ class FilterSnapshotAPI(Resource):
 
     def get(self):
         args = self.reqparse.parse_args()
-        query = db.session.query(Student)
+        query = db.session.query(Snapshot)
         for key in args:
             if key in snapshot_filters and args[key] is not None:
                 query = query.filter(snapshot_filters[key].in_(args[key]))
@@ -441,7 +441,7 @@ class FilterCourseAPI(Resource):
 
     def get(self):
         args = self.reqparse.parse_args()
-        query = db.session.query(Student)
+        query = db.session.query(Course)
         for key in args:
             if key in course_filters and args[key] is not None:
                 query = query.filter(course_filters[key].in_(args[key]))
