@@ -366,7 +366,6 @@ student_filters = {
     # TODO: add insert date, modified last date once they're in the db
     # TODO: (COULD) add stuff like 'registration status' and others based on most recent snapshot
 }
-
 class FilterStudentAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
@@ -379,23 +378,74 @@ class FilterStudentAPI(Resource):
         args = self.reqparse.parse_args()
         # TODO: if no filters applied, return (a paginated amount of) all students
         # TODO: built array, provide array to query, return query
-        print(args)
         query = db.session.query(Student)
         for key in args:
             if key in student_filters and args[key] is not None:
-                print(key)
-                print(args[key])
                 query = query.filter(student_filters[key].in_(args[key]))
         return student_query_to_dict(query)
     
 
-#snapshot_filters = {
+snapshot_filters = {
+    'student_id': Snapshot.student_id,
+    'year': Snapshot.year,
+    'semester': Snapshot.semester,
+    'week': Snapshot.week,
+    'insert_datetime': Snapshot.insert_datetime,
+    'registration_status': Snapshot.registration_status,
+    # TODO: do I want the below to be filterable as they are the data that we'll want to be pulling out
+    'teaching_sessions': Snapshot.teaching_sessions,
+    'teaching_attendance': Snapshot.teaching_attendance,
+    'teaching_explained_absence': Snapshot.teaching_explained_absence,
+    'teaching_absence': Snapshot.teaching_absence,
+    'teaching_last': Snapshot.teaching_last,
+    'assessments': Snapshot.assessments,
+    'assessment_submission': Snapshot.assessment_submission,
+    'assessment_explained_non_submission': Snapshot.assessment_explained_non_submission,
+    'assessment_non_submission': Snapshot.assessment_non_submission,
+    'assessment_in_late_period': Snapshot.assessment_in_late_period,
+    'assessment_last': Snapshot.assessment_last,
+    'academic_advising_sessions': Snapshot.academic_advising_sessions,
+    'academic_advising_attendance': Snapshot.academic_advising_attendance,
+    'academic_advising_explained_absence': Snapshot.academic_advising_explained_absence,
+    'academic_advising_absence': Snapshot.academic_advising_absence,
+    'academic_advising_not_recorded': Snapshot.academic_advising_not_recorded,
+    'academic_advising_last': Snapshot.academic_advising_last
+}
+class FilterSnapshotAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        for name, value in snapshot_filters.items():
+            #all attributes are optional and can have multiple entries
+            self.reqparse.add_argument(name, action='append', required=False, location='args') 
+        super(FilterStudentAPI, self).__init__()
 
-#}
+    def get(self):
+        args = self.reqparse.parse_args()
+        query = db.session.query(Student)
+        for key in args:
+            if key in snapshot_filters and args[key] is not None:
+                query = query.filter(snapshot_filters[key].in_(args[key]))
+        return snapshot_query_to_dict(query)
 
-#class FilterSnapshotAPI(Resource):
+course_filters = {
+    'code': Course.code,
+    'title': Course.title
+}
+class FilterCourseAPI(Resource):
+    def __init__(self):
+        self.reqparse = reqparse.RequestParser()
+        for name, value in course_filters.items():
+            #all attributes are optional and can have multiple entries
+            self.reqparse.add_argument(name, action='append', required=False, location='args') 
+        super(FilterStudentAPI, self).__init__()
 
-
+    def get(self):
+        args = self.reqparse.parse_args()
+        query = db.session.query(Student)
+        for key in args:
+            if key in course_filters and args[key] is not None:
+                query = query.filter(course_filters[key].in_(args[key]))
+        return row_to_dict(query)
 # NOTE: Make sure resource endpoints are unique
 
 #get students by course, stage, and graduate status
@@ -422,9 +472,10 @@ api.add_resource(AggregateStageAPI, '/api/aggregate/stage/<int:stage>')
 api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>') # whole departments - slow query
 api.add_resource(AggregateSchoolAPI, '/api/aggregate/school') #whole school - VERY slow query
 
-# TODO: add search endpoint for each to allow for querying/searches direct from frontend
-api.add_resource(FilterStudentAPI, '/api/filter/student') #Uses reqparse args
-
+#Filterable endpoints: No built-in args as they use reqparse args
+api.add_resource(FilterStudentAPI, '/api/filter/student') 
+api.add_resource(FilterSnapshotAPI, '/api/filter/snapshot')
+api.add_resource(FilterCourseAPI, '/api/filter/course')
 ### Database uploading / app boilerplate
 
 upload_db = False
