@@ -11,7 +11,7 @@ In your terminal/OS of choice (though written for Windows CMD)...
 1. Run ```npm install``` in the project directory to install dependencies from package.json.
 2. Navigate to the '/api' subdirectory e.g. by using ```cd api```
 3. Create a python virtual environment at '/api/venv' with ```python3 -m venv venv```
-4. Activate your virtual environment by running ```./api/venv/Scripts/activate``` (```./api/venv/bin/activate``` for Unix systems)
+4. Activate your virtual environment by running ```./venv/Scripts/activate``` (```./venv/bin/activate``` for Unix systems)
 5. Install all python dependencies into your virtual environment by running ```pip install -r requirements.txt```
 6. Exit your virtual environment with a simple ```deactivate```
 
@@ -21,6 +21,7 @@ Create a configuration file for your Flask API in the following format, where a 
 APP:
     secret_key: <value>
     SQLALCHEMY_TRACK_MODIFICATIONS: <value>
+    SQLALCHEMY_POOL_RECYCLE: 300
 
 APP_DEV:
     SQLALCHEMY_DATABASE_URI: <value>

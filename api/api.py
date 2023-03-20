@@ -180,7 +180,7 @@ class CoursesAPI(Resource):
     def get(self):
         return row_to_dict(db.session.query(Course).all())
 
-# Aggregate Functions: Strictly Read-Only
+# Aggregate Data APIs: Strictly Read-Only
 def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
     data = {}
     for r, row in enumerate(query):
@@ -322,7 +322,7 @@ class AggregateSchoolAPI(Resource): #aggregated data for the whole school
         student_list = student_query_to_dict(db.session.query(Student).all())
         return getAggregateData(student_list) 
 
-# Filterable Table Requests
+# Filterable Table-Specific APIs
 student_filters = {
     'student_id': Student.student_id,
     'level': Student.level,
@@ -424,12 +424,8 @@ class FilterCourseAPI(Resource):
                 else:
                     query = query.filter(course_filters[key].in_(args[key]))
         return course_query_to_dict(query)
-    
 
-
-#TODO: add 'like' field 
-
-# NOTE: Make sure resource endpoints are unique
+# Assign all 'API's an endpoint and add them to the app 'api'
 
 #get students by course, stage, and graduate status
 api.add_resource(StudentByCourseAPI, '/api/student/course/<course_code>') 
@@ -455,15 +451,15 @@ api.add_resource(AggregateStageAPI, '/api/aggregate/stage/<int:stage>')
 api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>') # whole departments - slow query
 api.add_resource(AggregateSchoolAPI, '/api/aggregate/school') #whole school - VERY slow query
 
-#Filterable endpoints: No built-in args as they use reqparse args
+# Filterable endpoints: No built-in args as they use reqparse args
 # All have a boolean 'like' field that can be anything, but when set switches the filter to use SQL 'like' for the first of each
 # column provided - allowing for search
 # NOTE: To make a query auto-complete searchable, just append a percentage sign '%' or '%25' (URL Encoding) to the given column
 api.add_resource(FilterStudentAPI, '/api/filter/student') 
 api.add_resource(FilterSnapshotAPI, '/api/filter/snapshot')
 api.add_resource(FilterCourseAPI, '/api/filter/course')
-### Database uploading / app boilerplate
 
+# Database uploading from snapshot files
 upload_db = False
 #upload_db = True #only uncomment to reupload the entire development dataset
 if upload_db:
@@ -478,5 +474,6 @@ if upload_db:
         excel_to_db('./sample_snapshot3.xlsx', db, 2017, 'Autumn', 9)
         excel_to_db('./sample_snapshot4.xlsx', db, 2017, 'Autumn', 12) #Note: Modern data will have only 11 weeks
 
+# Run App boilerplate
 if __name__ == '__main__':
     app.run()
