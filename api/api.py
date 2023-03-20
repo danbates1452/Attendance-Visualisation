@@ -101,18 +101,9 @@ class Student(db.Model):
 
 # TODO: Remember to use escape() on userinput to avoid XSS attacks
 # TODO: figure out how to limit then number returned 
-class APIResource(Resource): # TODO: experiment to see if we can avoid repetitive code by using a common superclass like this one
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(APIResource, self).__init__()
 # Student APIs
 class StudentByIdAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(StudentByIdAPI, self).__init__()
-
     def get(self, student_id):
-        #args = self.reqparse.parse_args()
         query = db.session.query(Student).filter_by(student_id=student_id).first()
         schema = StudentSchema()
         return schema.dump(query)
@@ -120,23 +111,12 @@ class StudentByIdAPI(Resource):
     def put(self, student_id):
         pass #TODO: check args for all required parts of a student
 
-class StudentByCourseAPI(Resource):
-    #Course Code, not title
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(StudentByCourseAPI, self).__init__()
-
+class StudentByCourseAPI(Resource): #code, not title
     def get(self, course_code):
-        args = self.reqparse.parse_args()
         return student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code))
 
 class StudentByStageAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(StudentByStageAPI, self).__init__()
-    
     def get(self, stage):
-        args = self.reqparse.parse_args()
         query = db.session.query(Student).filter_by(stage=stage)
         return student_query_to_dict(query)
 
@@ -183,32 +163,17 @@ class SnapshotByIdYearAPI(Resource): #student_id, year
         return snapshot_query_to_dict(query)
 
 class SnapshotByIdOnlyAPI(Resource): #student_id
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(SnapshotByIdOnlyAPI, self).__init__()
-
     def get(self, student_id):
-        args = self.reqparse.parse_args()
         query = db.session.query(Snapshot).filter_by(student_id=student_id)
         return snapshot_query_to_dict(query)
 
 # Course APIs
 class CourseByCodeAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(CourseByCodeAPI, self).__init__()
-
     def get(self, code):
-        args = self.reqparse.parse_args()
         return row_to_dict(db.session.query(Course).filter_by(code=code))
 
 class CourseByTitleAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(CourseByTitleAPI, self).__init__()
-
     def get(self, title):
-        args = self.reqparse.parse_args()
         return row_to_dict(db.session.query(Course).filter_by(title=title))
 
 class CoursesAPI(Resource):
@@ -369,6 +334,7 @@ student_filters = {
 class FilterStudentAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('like', required=False, location='args')
         for name, value in student_filters.items():
             #all attributes are optional and can have multiple entries
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
@@ -381,7 +347,10 @@ class FilterStudentAPI(Resource):
         query = db.session.query(Student)
         for key in args:
             if key in student_filters and args[key] is not None:
-                query = query.filter(student_filters[key].in_(args[key]))
+                if 'like' in args.keys():
+                    query = query.filter(student_filters[key].like(args[key]))
+                else:
+                    query = query.filter(student_filters[key].in_(args[key]))
         return student_query_to_dict(query)
     
 
@@ -393,6 +362,7 @@ snapshot_filters = {
     'insert_datetime': Snapshot.insert_datetime,
     'registration_status': Snapshot.registration_status,
     # TODO: do I want the below to be filterable as they are the data that we'll want to be pulling out
+    # could allow for bias, 
     'teaching_sessions': Snapshot.teaching_sessions,
     'teaching_attendance': Snapshot.teaching_attendance,
     'teaching_explained_absence': Snapshot.teaching_explained_absence,
@@ -414,17 +384,21 @@ snapshot_filters = {
 class FilterSnapshotAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('like', required=False, location='args')
         for name, value in snapshot_filters.items():
             #all attributes are optional and can have multiple entries
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
-        super(FilterStudentAPI, self).__init__()
+        super(FilterSnapshotAPI, self).__init__()
 
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Snapshot)
         for key in args:
             if key in snapshot_filters and args[key] is not None:
-                query = query.filter(snapshot_filters[key].in_(args[key]))
+                if 'like' in args.keys():
+                    query = query.filter(snapshot_filters[key].like(args[key]))
+                else:
+                    query = query.filter(snapshot_filters[key].in_(args[key]))
         return snapshot_query_to_dict(query)
 
 course_filters = {
@@ -434,18 +408,27 @@ course_filters = {
 class FilterCourseAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
+        self.reqparse.add_argument('like', required=False, location='args')
         for name, value in course_filters.items():
             #all attributes are optional and can have multiple entries
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
-        super(FilterStudentAPI, self).__init__()
+        super(FilterCourseAPI, self).__init__()
 
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Course)
         for key in args:
             if key in course_filters and args[key] is not None:
-                query = query.filter(course_filters[key].in_(args[key]))
-        return row_to_dict(query)
+                if 'like' in args.keys():
+                    query = query.filter(course_filters[key].like(args[key][0]))
+                else:
+                    query = query.filter(course_filters[key].in_(args[key]))
+        return course_query_to_dict(query)
+    
+
+
+#TODO: add 'like' field 
+
 # NOTE: Make sure resource endpoints are unique
 
 #get students by course, stage, and graduate status
@@ -473,6 +456,9 @@ api.add_resource(AggregateDepartmentAPI, '/api/aggregate/department/<department>
 api.add_resource(AggregateSchoolAPI, '/api/aggregate/school') #whole school - VERY slow query
 
 #Filterable endpoints: No built-in args as they use reqparse args
+# All have a boolean 'like' field that can be anything, but when set switches the filter to use SQL 'like' for the first of each
+# column provided - allowing for search
+# NOTE: To make a query auto-complete searchable, just append a percentage sign '%' or '%25' (URL Encoding) to the given column
 api.add_resource(FilterStudentAPI, '/api/filter/student') 
 api.add_resource(FilterSnapshotAPI, '/api/filter/snapshot')
 api.add_resource(FilterCourseAPI, '/api/filter/course')

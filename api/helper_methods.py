@@ -10,6 +10,12 @@ def get_absolute_path(relative):
 def row_to_dict(row):
     return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
 
+def student_query_to_dict(query):
+    result = {}
+    for row in query:
+        result[row.student_id] = row_to_dict(row)
+    return result
+
 def snapshot_query_to_dict(query):
     result = {}
     for row in query:
@@ -17,10 +23,10 @@ def snapshot_query_to_dict(query):
         result[identifier] = row_to_dict(row)
     return result
 
-def student_query_to_dict(query):
+def course_query_to_dict(query):
     result = {}
     for row in query:
-        result[row.student_id] = row_to_dict(row)
+        result[row.code] = row_to_dict(row)
     return result
 
 def try_cast_int(i):
