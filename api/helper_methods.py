@@ -6,16 +6,18 @@ def get_absolute_path(relative):
     working_directory = os.path.dirname(__file__)
     return os.path.join(working_directory, relative)
 
-# Convert SQLAlchemy Row Object to a Python Dictionary
+# Convert SQLAlchemy Row Object to a Python Dictionary (for JSON Serialising before API output)
 def row_to_dict(row):
     return {column: str(getattr(row, column)) for column in row.__table__.c.keys()}
 
+# Convert Student Query to a Dictionary (for JSON Serialising before API output)
 def student_query_to_dict(query):
     result = {}
     for row in query:
         result[row.student_id] = row_to_dict(row)
     return result
 
+# Convert Snapshot Query to a Dictionary (for JSON Serialising before API output)
 def snapshot_query_to_dict(query):
     result = {}
     for row in query:
@@ -23,12 +25,14 @@ def snapshot_query_to_dict(query):
         result[identifier] = row_to_dict(row)
     return result
 
+# Convert Course Query to a Dictionary (for JSON Serialising before API output)
 def course_query_to_dict(query):
     result = {}
     for row in query:
         result[row.code] = row_to_dict(row)
     return result
 
+# Attempt to cast to an integer and return None if None -> very useful with holey data
 def try_cast_int(i):
     if i is None:
         return None
