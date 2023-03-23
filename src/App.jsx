@@ -3,15 +3,18 @@ import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
 import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react-chartjs-2';
-import {Container, Row, Col, Navbar, Nav} from 'react-bootstrap';
+import {Container, Row, Col} from 'react-bootstrap';
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
 
-import Root from './routes/root';
+import Navigation from './navbar';
+import { ExtractChartData, ExtractAggregateData, ChartOptions } from './chartHandling';
+
+import Root, {rootLoader} from './routes/root';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Root/>
+    element: <Navigation/>
   }
 ]);
 
@@ -29,136 +32,6 @@ function FetchAPIData(endpoint) {
     fetchData();
   }, []);
   return data
-}
-
-function ExtractChartData(raw, details, subvalue='None') {
-  let labels = [];
-  let extractedDetails = {};
-  for (let d in details) {
-    extractedDetails[details[d]] = []
-  }
-  for (let key in raw) {
-    //key = top level key of each dict
-    if (subvalue === 'None') {
-      labels.push('Week ' + raw[key]['week']);
-    }
-    
-    for (let d in extractedDetails) {
-      if (subvalue === 'None') {
-        extractedDetails[d].push(raw[key][d]);
-      } else {
-        extractedDetails[d].push(raw[key][d][subvalue]);
-        labels.push(d)
-      }
-    }
-  }
-  
-  let datasets = [];
-  for (let d in extractedDetails) {
-    datasets.push({label: d, data: extractedDetails[d]})
-  }
-
-  return {
-    labels: labels,
-    datasets: datasets,
-  }
-}
-
-function ExtractAggregateData(raw, details, subvalue) {
-  let labels = [];
-  let extractedDetails = {};
-
-  for (let d in details) {
-    extractedDetails[details[d]] = []
-  } 
-
-  for (let key in raw) { //e.g. 'teaching_sessions'
-    for (let week in raw[key]) {
-      if (Object.keys(raw)[0] === key) { //if first attribute
-        labels.push('Week ' + week);
-      }
-
-      if (details.includes(key)) {
-        extractedDetails[key].push(raw[key][week][subvalue]);
-      }
-    }    
-  }
-
-  let datasets = [];
-  for (let d in extractedDetails) {
-    datasets.push({label: d, data: extractedDetails[d]})
-  }
-
-  return {
-    labels: labels,
-    datasets: datasets,
-  }
-  
-}
-
-function ChartOptions(title, xTitle, yTitle) {
-  return {
-    responsive: true,
-    plugins: {
-      tooltip: {
-        mode: 'index',
-        intersect: true
-      },
-      title: {
-        display: true,
-        text: title
-      }
-    },
-    hover: {
-      mode: 'index',
-      intersect: true
-    },
-    scales : {
-      x: {
-        title: {
-          display: true,
-          text: xTitle
-        }
-      },
-      y: {
-        title: {
-          display: true,
-          text: yTitle
-        }
-      }
-    }
-  }
-}
-
-function RoleWrapper({children, role, allowedRoles}) {
-  return allowedRoles.indexOf(role) > -1 ? children : null
-}
-
-function getCurrentUserRole() {
-  return 'admin'; //hardcoded for now, access control system not yet established
-}
-
-function AppNavbar(isAdmin=false) {
-return (
-  <Navbar bg="dark" variant="dark" expand="lg">
-    <Container>
-      <Navbar.Brand href='#'><strong >Attendance Visualisation</strong></Navbar.Brand>
-      <Navbar.Toggle aria-controls="application-navbar"></Navbar.Toggle>
-      <Navbar.Collapse id="application-navbar">
-        <Nav className="me-auto">
-          <Nav.Link href="/home">Home</Nav.Link>
-          <Nav.Link href="/login">Login</Nav.Link>
-          <Nav.Link href="/filter">Filters</Nav.Link>
-          <RoleWrapper role={getCurrentUserRole()} allowedRoles={'admin'}>
-            <Nav.Link href="/upload">Upload Data</Nav.Link>
-            <Nav.Link href="/users">User Management</Nav.Link>
-            <Nav.Link href="/data">Data Management</Nav.Link>
-          </RoleWrapper>
-        </Nav>
-      </Navbar.Collapse>
-    </Container>
-  </Navbar>
-);
 }
 
 function percentage(total, part) {
@@ -195,7 +68,7 @@ function App() {
 
   return (
     <div className='App'>
-      <AppNavbar/>
+      <RouterProvider router={router}/>
       <Container fluid>
         <Line data={chartData} options={chartOptions}/>
       </Container>
