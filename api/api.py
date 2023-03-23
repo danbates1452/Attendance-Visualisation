@@ -347,8 +347,8 @@ class FilterStudentAPI(Resource):
         query = db.session.query(Student)
         for key in args:
             if key in student_filters and args[key] is not None:
-                if 'like' in args.keys():
-                    query = query.filter(student_filters[key].like(args[key]))
+                if args['like']:
+                    query = query.filter(student_filters[key].like(args[key][0]))
                 else:
                     query = query.filter(student_filters[key].in_(args[key]))
         return student_query_to_dict(query)
@@ -395,8 +395,8 @@ class FilterSnapshotAPI(Resource):
         query = db.session.query(Snapshot)
         for key in args:
             if key in snapshot_filters and args[key] is not None:
-                if 'like' in args.keys():
-                    query = query.filter(snapshot_filters[key].like(args[key]))
+                if args['like']:
+                    query = query.filter(snapshot_filters[key].like(args[key][0]))
                 else:
                     query = query.filter(snapshot_filters[key].in_(args[key]))
         return snapshot_query_to_dict(query)
@@ -419,7 +419,7 @@ class FilterCourseAPI(Resource):
         query = db.session.query(Course)
         for key in args:
             if key in course_filters and args[key] is not None:
-                if 'like' in args.keys():
+                if args['like']:
                     query = query.filter(course_filters[key].like(args[key][0]))
                 else:
                     query = query.filter(course_filters[key].in_(args[key]))
