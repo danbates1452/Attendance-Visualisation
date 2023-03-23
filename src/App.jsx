@@ -1,10 +1,19 @@
 import React, {useState, useEffect} from 'react';
+import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
 import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react-chartjs-2';
 import {Container, Row, Col, Navbar, Nav} from 'react-bootstrap';
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 import axios from 'axios';
+
+import Root from './routes/root';
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Root/>
+  }
+]);
 
 //functional component that handles fetching raw data from api
 function FetchAPIData(endpoint) {
