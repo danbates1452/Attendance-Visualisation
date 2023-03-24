@@ -1,4 +1,3 @@
-import Navigation from "./navigation";
 import { ExtractAggregateData, ExtractChartData, ChartOptions } from "../helper/chartHandling";
 import FetchAPIData from "../helper/fetchApiData";
 import { Container } from "react-bootstrap";
