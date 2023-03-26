@@ -13,7 +13,7 @@ export default function FiltersPage() {
                     <Col>
                         <Form.Group>
                             <Form.Label htmlFor="tableSelect">Table</Form.Label>
-                            <Form.Select id="tableSelect" onChange={this.FilterOptions}>
+                            <Form.Select id="tableSelect" onChange={FilterOptions()}>
                                 <option selected disabled hidden>Select a table</option>
                                 <option value="student">Students</option>
                                 <option value="snapshot">Snapshots</option>
@@ -66,9 +66,8 @@ function FilterOptions(table) {
         //if the table name is in filters object
         filters = all_filters[table];
         filters = filtersToForm(filters);
-    }
-
-    
+        //todo: put this element into place under the table selector
+    }  
 }
 
 function filtersToForm(filter_names) {
