@@ -3,9 +3,9 @@ import { Col, Container, Form, Row, Tab } from "react-bootstrap";
 import FetchAPIData from "../helper/fetchApiData";
 
 export default function FiltersPage() {
-    const [filters, setFilters] = useState([<TableFilters tableName={"EMPTY"}/>]);
+    const [filters, setFilters] = useState([<TableFilters tableName="EMPTY"/>]);
 
-    const handleSelect = (event) => {setFilters(event.target.value)}
+    const handleSelect = (event) => {setFilters(<TableFilters tableName={event.target.value}/>)}
 
     return(
         <Container>
@@ -55,10 +55,9 @@ const all_filters = {
 }*/
 
 function TableFilters({tableName}) {
-    let children;
     switch (tableName) {
-        case 'student': //TODO: think of a course code pattern
-            children = (
+        case 'student': //TODO: pull all course codes and titles (display as "CODE - TITLE") for selection
+            return (
                 <>
                     <Row>
                         <Col>
@@ -80,7 +79,7 @@ function TableFilters({tableName}) {
                         <Col>
                             <Form.Group>
                                 <Form.Label>Stage</Form.Label>
-                                <Form.Select defaultValue="null">
+                                <Form.Select defaultValue={["null"]} multiple>
                                     <option disabled hidden value="null">Select a Stage</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -113,6 +112,4 @@ function TableFilters({tableName}) {
         default:
             return '';
     }
-
-    return children;
 }
