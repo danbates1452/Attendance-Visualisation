@@ -170,15 +170,15 @@ class SnapshotByIdOnlyAPI(Resource): #student_id
 # Course APIs
 class CourseByCodeAPI(Resource):
     def get(self, code):
-        return row_to_dict(db.session.query(Course).filter_by(code=code))
+        return course_query_to_dict(db.session.query(Course).filter_by(code=code))
 
 class CourseByTitleAPI(Resource):
     def get(self, title):
-        return row_to_dict(db.session.query(Course).filter_by(title=title))
+        return course_query_to_dict(db.session.query(Course).filter_by(title=title))
 
 class CoursesAPI(Resource):
     def get(self):
-        return row_to_dict(db.session.query(Course).all())
+        return course_query_to_dict(db.session.query(Course).all())
 
 # Aggregate Data APIs: Strictly Read-Only
 def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
