@@ -3,12 +3,13 @@ from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, load_only
 from sqlalchemy.sql import func
 import yaml
 from distutils.util import strtobool
 from flask_marshmallow import Marshmallow
 from decimal import Decimal
+from copy import deepcopy
 
 # Project Modules
 import pages
@@ -363,23 +364,23 @@ snapshot_filters = {
     'registration_status': Snapshot.registration_status,
     # TODO: do I want the below to be filterable as they are the data that we'll want to be pulling out
     # could allow for bias, 
-    'teaching_sessions': Snapshot.teaching_sessions,
-    'teaching_attendance': Snapshot.teaching_attendance,
-    'teaching_explained_absence': Snapshot.teaching_explained_absence,
-    'teaching_absence': Snapshot.teaching_absence,
-    'teaching_last': Snapshot.teaching_last,
-    'assessments': Snapshot.assessments,
-    'assessment_submission': Snapshot.assessment_submission,
-    'assessment_explained_non_submission': Snapshot.assessment_explained_non_submission,
-    'assessment_non_submission': Snapshot.assessment_non_submission,
-    'assessment_in_late_period': Snapshot.assessment_in_late_period,
-    'assessment_last': Snapshot.assessment_last,
-    'academic_advising_sessions': Snapshot.academic_advising_sessions,
-    'academic_advising_attendance': Snapshot.academic_advising_attendance,
-    'academic_advising_explained_absence': Snapshot.academic_advising_explained_absence,
-    'academic_advising_absence': Snapshot.academic_advising_absence,
-    'academic_advising_not_recorded': Snapshot.academic_advising_not_recorded,
-    'academic_advising_last': Snapshot.academic_advising_last
+    #'teaching_sessions': Snapshot.teaching_sessions,
+    #'teaching_attendance': Snapshot.teaching_attendance,
+    #'teaching_explained_absence': Snapshot.teaching_explained_absence,
+    #'teaching_absence': Snapshot.teaching_absence,
+    #'teaching_last': Snapshot.teaching_last,
+    #'assessments': Snapshot.assessments,
+    #'assessment_submission': Snapshot.assessment_submission,
+    #'assessment_explained_non_submission': Snapshot.assessment_explained_non_submission,
+    #'assessment_non_submission': Snapshot.assessment_non_submission,
+    #'assessment_in_late_period': Snapshot.assessment_in_late_period,
+    #'assessment_last': Snapshot.assessment_last,
+    #'academic_advising_sessions': Snapshot.academic_advising_sessions,
+    #'academic_advising_attendance': Snapshot.academic_advising_attendance,
+    #'academic_advising_explained_absence': Snapshot.academic_advising_explained_absence,
+    #'academic_advising_absence': Snapshot.academic_advising_absence,
+    #'academic_advising_not_recorded': Snapshot.academic_advising_not_recorded,
+    #'academic_advising_last': Snapshot.academic_advising_last
 }
 class FilterSnapshotAPI(Resource):
     def __init__(self):
@@ -425,6 +426,29 @@ class FilterCourseAPI(Resource):
                     query = query.filter(course_filters[key].in_(args[key]))
         return course_query_to_dict(query)
 
+class FilterOptionsAPI(Resource):
+    def get(self, table_name):
+        if table_name == 'student':
+            filters = student_filters
+            table = Student
+        elif table_name == 'snapshot':
+            filters = snapshot_filters
+            table = Snapshot
+        elif table_name == 'course':
+            filters = course_filters
+            table = Course
+        else:
+            return None #TODO: figure out a better return for this
+        
+        filters_out = {}
+        for key, value in filters.items():
+            if key == 'insert_datetime':
+                continue # avoid straining db with non-user-reachable rich data
+            query = db.session.query(value).distinct()
+            filters_out[key] = [str(row[0]) for row in query]
+
+        return filters_out
+
 # Assign all 'API's an endpoint and add them to the app 'api'
 
 #get students by course, stage, and graduate status
@@ -459,6 +483,7 @@ api.add_resource(FilterStudentAPI, '/api/filter/student')
 api.add_resource(FilterSnapshotAPI, '/api/filter/snapshot')
 api.add_resource(FilterCourseAPI, '/api/filter/course')
 
+api.add_resource(FilterOptionsAPI, '/api/filter_options/<table_name>')
 # Database uploading from snapshot files
 upload_db = False
 #upload_db = True #only uncomment to reupload the entire development dataset
