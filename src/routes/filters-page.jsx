@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Col, Container, Form, Row, Tab } from "react-bootstrap";
+import { useState } from "react";
+import { Col, Container, Form, Row } from "react-bootstrap";
 import FetchAPIData from "../helper/fetchApiData";
 import Select from 'react-select';
 
@@ -54,30 +54,22 @@ function TableFilters({tableName}) {
     let studentOptions; //shared between student and snapshot -> try to only load once as it's a fairly intensive operation to bring in ~1400 rows
     switch (tableName) {
         case 'student': //TODO: pull all course codes and titles (display as "CODE - TITLE") for selection
-            let levelOptions = [
-                {value: 'ug', label: 'Undergraduate'},
-                {value: 'pgt', label: 'Postgraduate Taught'}
-            ]; 
-
-            let stageOptions = [
-                {value: 1, label: '1'},
-                {value: 2, label: '2'},
-                {value: 3, label: '3'},
-                {value: 4, label: '4'},
-                {value: 5, label: '5'}
-            ];
-
-            let courseOptions = [];
-            let fetchCourse = FetchAPIData('/api/courses'); //all courses
-            for (let key in fetchCourse) {
-                courseOptions.push({value: key, label: key + ' ' + fetchCourse[key]['title']});
-            }
-            
             if (!studentOptions) { //if unset
                 studentOptions = getStudentIDOptions();
             }
             
-            //<Form.Control type="text" pattern="/^\d+$/"/>
+            let fetchStudentOptions = FetchAPIData('/api/filter_options/student');
+            console.log(fetchStudentOptions);
+            for (let key in fetchStudentOptions) {
+                console.log(key, fetchStudentOptions[key]);
+            }
+            
+            if (!studentOptions) studentOptions = optionArrayToObjectArray(fetchStudentOptions['student_id']);
+
+            let courseOptions = optionArrayToObjectArray(fetchStudentOptions['course_code']);
+            let stageOptions = optionArrayToObjectArray(fetchStudentOptions['stage']);
+            let levelOptions = optionArrayToObjectArray(fetchStudentOptions['level']);
+
             return (
                     <>
                         <Row>
@@ -100,17 +92,13 @@ function TableFilters({tableName}) {
                     </>
             );
         case 'snapshot':
-            if (!studentOptions) { //if unset
-                studentOptions = getStudentIDOptions();
-            }
-
-            console.log(studentOptions);
-
             let fetchSnapshotOptions = FetchAPIData('/api/filter_options/snapshot');
             console.log(fetchSnapshotOptions);
             for (let key in fetchSnapshotOptions) {
                 console.log(key, fetchSnapshotOptions[key]);
             }
+            
+            if (!studentOptions) studentOptions = optionArrayToObjectArray(fetchSnapshotOptions['student_id']);
 
             let registrationOptions = optionArrayToObjectArray(fetchSnapshotOptions['registration_status']);
             let yearOptions = optionArrayToObjectArray(fetchSnapshotOptions['year']);

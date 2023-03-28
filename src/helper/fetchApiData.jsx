@@ -5,7 +5,7 @@ import axios from 'axios';
 export default function FetchAPIData(endpoint) {
     const [data, setData] = useState([]);
   
-    useEffect(() => {
+    useEffect((endpoint) => {
       const fetchData = async () => {
         const result = await axios(
           endpoint

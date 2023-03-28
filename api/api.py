@@ -446,6 +446,7 @@ class FilterOptionsAPI(Resource):
                 continue # avoid straining db with non-user-reachable rich data
             query = db.session.query(value).distinct()
             filters_out[key] = [str(row[0]) for row in query]
+            print(filters_out[key])
 
         return filters_out
 
