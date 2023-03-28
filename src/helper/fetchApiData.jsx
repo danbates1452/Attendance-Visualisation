@@ -1,18 +1,21 @@
 import {useEffect, useState} from 'react';
-import axios from 'axios';
+//import axios from 'axios';
 
 //functional component that handles fetching raw data from api
 export default function FetchAPIData(endpoint) {
     const [data, setData] = useState([]);
   
-    useEffect((endpoint) => {
-      const fetchData = async () => {
-        const result = await axios(
-          endpoint
-        );
-        setData(result.data)
-      };
-      fetchData();
-    }, []);
+    useEffect(() => {
+      fetch(endpoint)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('HTTP Error, Status: ' + response.status);
+        }
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => setData(data))
+      .catch((err) => console.log(err.message))
+    }, [endpoint]);
     return data
 }

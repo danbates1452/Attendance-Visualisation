@@ -7,7 +7,7 @@ export default function FiltersPage() {
     const [filters, setFilters] = useState([<TableFilters tableName="EMPTY"/>]);
 
     const handleSelect = (event) => {setFilters(<TableFilters tableName={event.target.value}/>)}
-
+    
     return(
         <Container fluid className="p-3">
             <Form>
@@ -31,16 +31,6 @@ export default function FiltersPage() {
     );
 }
 
-
-function getStudentIDOptions() {
-    let studOptions = [];
-    let fetchStudent = FetchAPIData('/api/filter/student'); //no args so we get all students
-    for (let key in fetchStudent) {
-        studOptions.push({value: key, label: key})
-    }
-    return studOptions;
-}
-
 function optionArrayToObjectArray(optionArray) {
     let objArr = [];
     optionArray.sort();
@@ -54,9 +44,6 @@ function TableFilters({tableName}) {
     let studentOptions; //shared between student and snapshot -> try to only load once as it's a fairly intensive operation to bring in ~1400 rows
     switch (tableName) {
         case 'student': //TODO: pull all course codes and titles (display as "CODE - TITLE") for selection
-            if (!studentOptions) { //if unset
-                studentOptions = getStudentIDOptions();
-            }
             
             let fetchStudentOptions = FetchAPIData('/api/filter_options/student');
             console.log(fetchStudentOptions);
@@ -129,7 +116,6 @@ function TableFilters({tableName}) {
                     </Row>
                 </>
             );
-            break;
         case 'course':
 
             break;

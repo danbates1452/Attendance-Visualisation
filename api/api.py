@@ -430,13 +430,10 @@ class FilterOptionsAPI(Resource):
     def get(self, table_name):
         if table_name == 'student':
             filters = student_filters
-            table = Student
         elif table_name == 'snapshot':
             filters = snapshot_filters
-            table = Snapshot
         elif table_name == 'course':
             filters = course_filters
-            table = Course
         else:
             return None #TODO: figure out a better return for this
         
@@ -445,7 +442,11 @@ class FilterOptionsAPI(Resource):
             if key == 'insert_datetime':
                 continue # avoid straining db with non-user-reachable rich data
             query = db.session.query(value).distinct()
-            filters_out[key] = [str(row[0]) for row in query]
+            #filters_out[key] = [str(row[0]) for row in query]
+            rows = {}
+            for i, row in enumerate(query):
+                rows[i] = str(row[0])
+            filters_out[key] = rows
             print(filters_out[key])
 
         return filters_out
