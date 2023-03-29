@@ -38,7 +38,7 @@ def excel_to_db(filename, db, year, semester, week):
         assessment_submission = try_cast_int(row[14]) #Submitted
         assessment_explained_non_submission = try_cast_int(row[15]) #Explained Non-Submission
         assessment_non_submission = try_cast_int(row[16]) #Non Submission
-        assessment_in_late_period = row[17] #Within Late Period Flag
+        assessment_in_late_period = True if row[17] == 0 else False #Within Late Period Flag
         assessment_last = row[19]
         # row index 18 is a percentage
         academic_advising_sessions = try_cast_int(row[20]) #Academic Advising Sessions

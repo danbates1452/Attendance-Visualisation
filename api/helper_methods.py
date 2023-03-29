@@ -60,7 +60,7 @@ class Snapshot(Schema):
     assessment_submission = fields.Int()
     assessment_explained_non_submission = fields.Int()
     assessment_non_submission = fields.Int()
-    assessment_in_late_period = fields.Int()
+    assessment_in_late_period = fields.Boolean()
     assessment_last = fields.Date()
     # Academic Advising
     academic_advising_sessions = fields.Int()

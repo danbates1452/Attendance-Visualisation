@@ -3,7 +3,7 @@ from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast
-from sqlalchemy.orm import relationship, load_only
+from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.sql import func
 import yaml
 from distutils.util import strtobool
@@ -64,13 +64,18 @@ class Snapshot(db.Model):
     teaching_explained_absence = Column(Integer)  # Teaching Session Explained Absence
     teaching_absence = Column(Integer)  # Teaching Session Unexplained Absence
     teaching_last = Column(Date)  # Date of last teaching session attendance
+
+    percentage_attendance = column_property(teaching_attendance / teaching_sessions)
+    percentage_attendance_unexcused = column_property((teaching_attendance + teaching_explained_absence) / teaching_sessions)
     # Assessments
     assessments = Column(Integer)  # Assessments Assigned
     assessment_submission = Column(Integer)  # Assessments Submitted
     assessment_explained_non_submission = Column(Integer) # Explained Unsubmitted Assessments
     assessment_non_submission = Column(Integer)  # Unexplained Unsubmitted Assessments
-    assessment_in_late_period = Column(Integer)  # Submitted during Late Period
+    assessment_in_late_period = Column(Boolean)  # Submitted during Late Period
     assessment_last = Column(Date) # Date of last Assessment
+
+    percentage_assessments_submitted = column_property(assessment_submission / assessments)
     # Academic Advising
     academic_advising_sessions = Column(Integer)  # Academic Advising Sessions Assigned
     academic_advising_attendance = Column(Integer)  # Academic Advising Attended
@@ -78,6 +83,8 @@ class Snapshot(db.Model):
     academic_advising_absence = Column(Integer)  # Academic Advising Absence
     academic_advising_not_recorded = Column(Integer)  # Academic Advising Attendance Not Recorded
     academic_advising_last = Column(Date)  # Date of last Academic Advising session attended
+
+    percentage_academic_advising_attendance = column_property(academic_advising_attendance / academic_advising_sessions)
 
     # Relationships
     # student = relationship("Student", back_populates = "snapshots")
@@ -99,9 +106,9 @@ class Student(db.Model):
     snapshots = relationship('Snapshot', backref = 'Student')  # snapshots, One-To-Many
     course = relationship('Course', foreign_keys='Student.course_code')
 
-
 # TODO: Remember to use escape() on userinput to avoid XSS attacks
 # TODO: figure out how to limit then number returned 
+
 # Student APIs
 class StudentByIdAPI(Resource):
     def get(self, student_id):
@@ -354,7 +361,6 @@ class FilterStudentAPI(Resource):
                     query = query.filter(student_filters[key].in_(args[key]))
         return student_query_to_dict(query)
     
-
 snapshot_filters = {
     'student_id': Snapshot.student_id,
     'year': Snapshot.year,
