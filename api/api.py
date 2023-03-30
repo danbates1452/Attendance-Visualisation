@@ -438,12 +438,10 @@ class FilterOptionsAPI(Resource):
             if key == 'insert_datetime':
                 continue # avoid straining db with non-user-reachable rich data
             query = db.session.query(value).distinct()
-            #filters_out[key] = [str(row[0]) for row in query]
             rows = {}
             for i, row in enumerate(query):
                 rows[i] = str(row[0])
             filters_out[key] = rows
-            print(filters_out[key])
 
         return filters_out
 

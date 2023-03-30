@@ -1,7 +1,7 @@
 import { ExtractAggregateData, ExtractChartData, ChartOptions, percentageChartData } from "../helper/chartHandling";
 import FetchAPIData from "../helper/fetchApiData";
-import { Container } from "react-bootstrap";
-import { Line, Bar, Pie } from "react-chartjs-2";
+import { Container, Row, Col } from "react-bootstrap";
+import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
 
 export default function HomePage() {
   const student_id = 43437412;
@@ -28,19 +28,25 @@ export default function HomePage() {
     'academic_advising_not_recorded'
   ], 'avg');*/
 
-  const chartData = percentageChartData(apiData, 'teaching_attendance', 'teaching_sessions', '% Attendance');
-  console.log(chartData);
+  const attendancePercentageData = percentageChartData(apiData, 'teaching_attendance', 'teaching_sessions', '% Attendance');
 
   //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance', 'teaching_absence', 'teaching_explained_absence'], 'sum');
 
   //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
 
-  const chartOptions = ChartOptions('% Attendance', 'Snapshots', 'Quantity');
+  const attendancePercentageOptions = ChartOptions('% Attendance', 'Snapshots', 'Quantity');
 
     return (
         <div>
             <Container fluid>
-                <Line data={chartData} options={chartOptions}/>
+              <Row>
+                <Col><Line data={attendancePercentageData} options={attendancePercentageOptions}/></Col>
+                <Col><PolarArea data={attendancePercentageData} options={attendancePercentageOptions}/></Col>
+              </Row>
+              <Row>
+                <Col></Col>
+                <Col></Col>
+              </Row>
             </Container>
         </div>
     );
