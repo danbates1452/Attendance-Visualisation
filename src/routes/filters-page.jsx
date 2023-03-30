@@ -122,7 +122,7 @@ function courseFilter() {
                     <Form.Label>Course Code</Form.Label>
                     <Select options={codeOptions}/>
                 </Form.Group>
-                
+
                 <Form.Group as={Col}>
                     <Form.Label>Course Title</Form.Label>
                     <Select options={titleOptions}/>
@@ -143,19 +143,4 @@ function TableFilters({tableName}) {
         default:
             return '';
     }
-
-    /*
-    'snapshot': [
-        'student_id',
-        'year',
-        'semester',
-        'week',
-        'insert_datetime',
-        'registration_status',
-    ],
-    'course': [
-        'code',
-        'title'
-    ]
-}*/
 }
