@@ -30,6 +30,30 @@ export function ExtractChartData(raw, details, subvalue='None') {
       datasets: datasets,
     }
   }
+
+export function percentageChartData(raw, numerator, denominator, name) {
+  let labels = [];
+  let data = [];
+
+  for (let key in raw) { //top level e.g. list of snapshots    
+    labels.push('Week ' + raw[key]['week']);
+    const numeratorValue = Number(raw[key][numerator]);
+    const denominatorValue = Number(raw[key][denominator]);
+    if (numeratorValue !== 0 && denominatorValue !== 0) {
+      const percentage = (numeratorValue / denominatorValue) * 100;
+      //data.push({percentage: percentage});
+      data.push(percentage);
+    } else {
+      //data.push({percentage: 0});
+      data.push(0);
+    }
+  }
+  
+  return {
+    labels: labels,
+    datasets: [{label: name, data: data}],
+  }
+}
   
 export function ExtractAggregateData(raw, details, subvalue) {
     let labels = [];
