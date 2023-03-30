@@ -2,9 +2,10 @@
 from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast
+from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast, Float
 from sqlalchemy.orm import relationship, column_property
 from sqlalchemy.sql import func
+from sqlalchemy.ext.declarative import declarative_base
 import yaml
 from distutils.util import strtobool
 from flask_marshmallow import Marshmallow
@@ -34,6 +35,9 @@ if isinstance(config, Exception):  # if config is not loaded successfully... exi
     import sys
     sys.exit('Configuration Error:\n' + str(config))
 
+db = SQLAlchemy()
+Base = declarative_base(metadata=db.metadata)
+
 app = Flask(__name__)
 
 for key, value in config['APP'].items():  # loop through and add base configurations for the flask app
@@ -47,10 +51,10 @@ api = Api(app)
 ma = Marshmallow(app)
 
 # Database Setup
-db = SQLAlchemy(app)
 
+db.init_app(app)
 # Snapshot Model
-class Snapshot(db.Model):
+class Snapshot(Base):
     __tablename__ = "Snapshot"
     student_id = Column(Integer, ForeignKey("Student.student_id"), primary_key=True, nullable=False)
     year = Column(Integer, nullable=False) # year of snapshot (e.g. 2023)
@@ -64,9 +68,7 @@ class Snapshot(db.Model):
     teaching_explained_absence = Column(Integer)  # Teaching Session Explained Absence
     teaching_absence = Column(Integer)  # Teaching Session Unexplained Absence
     teaching_last = Column(Date)  # Date of last teaching session attendance
-
-    percentage_attendance = column_property(teaching_attendance / teaching_sessions)
-    percentage_attendance_unexcused = column_property((teaching_attendance + teaching_explained_absence) / teaching_sessions)
+    
     # Assessments
     assessments = Column(Integer)  # Assessments Assigned
     assessment_submission = Column(Integer)  # Assessments Submitted
@@ -74,8 +76,7 @@ class Snapshot(db.Model):
     assessment_non_submission = Column(Integer)  # Unexplained Unsubmitted Assessments
     assessment_in_late_period = Column(Boolean)  # Submitted during Late Period
     assessment_last = Column(Date) # Date of last Assessment
-
-    percentage_assessments_submitted = column_property(assessment_submission / assessments)
+    
     # Academic Advising
     academic_advising_sessions = Column(Integer)  # Academic Advising Sessions Assigned
     academic_advising_attendance = Column(Integer)  # Academic Advising Attended
@@ -84,19 +85,33 @@ class Snapshot(db.Model):
     academic_advising_not_recorded = Column(Integer)  # Academic Advising Attendance Not Recorded
     academic_advising_last = Column(Date)  # Date of last Academic Advising session attended
 
-    percentage_academic_advising_attendance = column_property(academic_advising_attendance / academic_advising_sessions)
+    # Percentages (Calculated Columns)
+    percentage_attendance = column_property(func.div(teaching_attendance / teaching_sessions))
+    percentage_attendance_col = Column(Float)
+    percentage_attendance.expression(percentage_attendance_col)
+    
+    percentage_attendance_unexcused = column_property(func.div((teaching_attendance + teaching_explained_absence) / teaching_sessions))
+    #percentage_attendance_unexcused_col = Column(Float)
+    #percentage_attendance_unexcused.expression(percentage_attendance_unexcused_col)
 
-    # Relationships
-    # student = relationship("Student", back_populates = "snapshots")
+    percentage_assessments_submitted = column_property(func.div(assessment_submission / assessments))
+    #percentage_assessments_submitted_col = Column(Float)
+    #percentage_assessments_submitted.expression(percentage_assessments_submitted_col)
+    
+    percentage_academic_advising_attendance = column_property(func.div(academic_advising_attendance / academic_advising_sessions))
+    #percentage_academic_advising_attendance_col = Column(Float)
+    #percentage_academic_advising_attendance.expression(percentage_academic_advising_attendance_col)
+        
+    
 
 # Course Model
-class Course(db.Model):
+class Course(Base):
     __tablename__ = "Course"
     code = Column(String, primary_key=True)
     title = Column(String, nullable=False)
 
 # Student Model
-class Student(db.Model):
+class Student(Base):
     __tablename__ = 'Student'
     student_id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
     level = Column(String, nullable=False) # True = Undergraduate, False = Postgraduate Taught
@@ -494,7 +509,7 @@ api.add_resource(FilterCourseAPI, '/api/filter/course')
 api.add_resource(FilterOptionsAPI, '/api/filter_options/<table_name>')
 # Database uploading from snapshot files
 upload_db = False
-#upload_db = True #only uncomment to reupload the entire development dataset
+upload_db = True #only uncomment to reupload the entire development dataset
 if upload_db:
     with app.app_context():
         db.drop_all()
