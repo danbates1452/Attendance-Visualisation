@@ -6,11 +6,16 @@ import Select from 'react-select';
 export default function FiltersPage() {
     const [filters, setFilters] = useState([<TableFilters tableName="EMPTY"/>]);
 
-    const handleSelect = (event) => {setFilters(<TableFilters tableName={event.target.value}/>)}
+    //handle top level selector for individual different tables
+    const handleSelect = (event) => {setFilters(<TableFilters tableName={event.target.value}/>)};
+    //handle submission of any table form
+    const handleSubmit = (event) => {};
+    //update values
+    const handleChange = (event) => {};
 
     return(
         <Container fluid className="p-3">
-            <Form>
+            <Form onSubmit={handleSubmit}>
                 <Row className="pb-3">
                     <Col></Col>
                     <Form.Group as={Col}>
