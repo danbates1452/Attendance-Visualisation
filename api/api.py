@@ -12,7 +12,6 @@ from decimal import Decimal
 from copy import deepcopy
 
 # Project Modules
-import pages
 from helper_methods import *
 
 # environment_type = 'dev'
