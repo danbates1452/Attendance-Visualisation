@@ -1,3 +1,20 @@
+import ColorHash from "color-hash";
+const colorHash = new ColorHash();
+
+const borderColor = 'CCCCCC44';
+
+function getTranslucentColorHash(string) {
+  return colorHash.hex(string) + '99';
+}
+
+function backgroundColorArray(labelList) {
+  let bgColours = [];
+  for (let label in labelList) {
+    bgColours.push(getTranslucentColorHash(label))
+  }
+  return bgColours;
+}
+
 export function ExtractChartData(raw, details, subvalue='None') {
     let labels = [];
     let extractedDetails = {};
@@ -22,7 +39,7 @@ export function ExtractChartData(raw, details, subvalue='None') {
     
     let datasets = [];
     for (let d in extractedDetails) {
-      datasets.push({label: d, data: extractedDetails[d]})
+      datasets.push({label: d, data: extractedDetails[d], backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(d)})
     }
   
     return {
@@ -31,27 +48,55 @@ export function ExtractChartData(raw, details, subvalue='None') {
     }
   }
 
-export function percentageChartData(raw, numerator, denominator, name) {
+export function percentageChartData(raw, numerator, denominator, name, subvalue='None') {
   let labels = [];
   let data = [];
 
-  for (let key in raw) { //top level e.g. list of snapshots    
+  for (let key in raw) { //top level e.g. list of snapshots
     labels.push('Week ' + raw[key]['week']);
-    const numeratorValue = Number(raw[key][numerator]);
-    const denominatorValue = Number(raw[key][denominator]);
+    let numeratorValue, denominatorValue;
+    if (subvalue === 'None') {
+      numeratorValue = Number(raw[key][numerator]);
+      denominatorValue = Number(raw[key][denominator]);
+    } else {
+      numeratorValue = Number(raw[key][numerator][subvalue]);
+      denominatorValue = Number(raw[key][denominator][subvalue]);
+    }
     if (numeratorValue !== 0 && denominatorValue !== 0) {
       const percentage = (numeratorValue / denominatorValue) * 100;
-      //data.push({percentage: percentage});
       data.push(percentage);
     } else {
-      //data.push({percentage: 0});
       data.push(0);
     }
   }
   
   return {
     labels: labels,
-    datasets: [{label: name, data: data}],
+    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
+  }
+}
+
+export function percentageAggregateChartData(raw, numerator, denominator, name, subvalue='None') {
+  let labels = [];
+  let data = [];
+
+  for (let week in raw[numerator]) { //only need to loop for numerator as denominator should have the same number of weeks
+    labels.push('Week ' + week);
+
+    const numeratorValue = Number(raw[numerator][week][subvalue]);
+    const denominatorValue = Number(raw[denominator][week][subvalue]);
+
+    if (numeratorValue !== 0 && denominatorValue !== 0) {
+      const percentage = (numeratorValue / denominatorValue) * 100;
+      data.push(percentage);
+    } else {
+      data.push(0);
+    }
+  }
+  
+  return {
+    labels: labels,
+    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
   }
 }
   
@@ -77,7 +122,7 @@ export function ExtractAggregateData(raw, details, subvalue) {
   
     let datasets = [];
     for (let d in extractedDetails) {
-      datasets.push({label: d, data: extractedDetails[d]})
+      datasets.push({label: d, data: extractedDetails[d], backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(d)})
     }
   
     return {
@@ -87,7 +132,7 @@ export function ExtractAggregateData(raw, details, subvalue) {
     
   }
   
- export function ChartOptions(title, xTitle, yTitle) {
+ export function LinearChartOptions(title, xTitle, yTitle) {
     return {
       responsive: true,
       plugins: {
@@ -120,3 +165,27 @@ export function ExtractAggregateData(raw, details, subvalue) {
       }
     }
   }
+
+//essentially the same as linear chart options but without enforced scales
+export function CircularChartOptions(title) {
+  return {
+    responsive: true,
+    plugins: {
+      tooltip: {
+        mode: 'index',
+        intersect: true
+      },
+      title: {
+        display: true,
+        text: title
+      },
+      colors: {
+        enabled: true
+      }
+    },
+    hover: {
+      mode: 'index',
+      intersect: true
+    }
+  }
+}

@@ -1,16 +1,16 @@
-import { ExtractAggregateData, ExtractChartData, ChartOptions, percentageChartData } from "../helper/chartHandling";
+import { ExtractAggregateData, ExtractChartData, LinearChartOptions, CircularChartOptions, percentageChartData, percentageAggregateChartData } from "../helper/chartHandling";
 import FetchAPIData from "../helper/fetchApiData";
 import { Container, Row, Col } from "react-bootstrap";
 import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
 
 export default function HomePage() {
-  const student_id = 43437412;
-  const apiData = FetchAPIData('/api/snapshot/' + student_id);
-  //const apiData = FetchAPIData('/api/aggregate/course/' + 'G5001U');
+  //const student_id = 43437412;
+  //const apiData = FetchAPIData('/api/snapshot/' + student_id);
+  //const apiData = FetchAPIData('/api/aggregate/course/G5001U');
   
   //const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
   
-  //const apiData = FetchAPIData('/api/aggregate/department/informatics');
+  const apiData = FetchAPIData('/api/aggregate/department/informatics');
   /*const chartData = ExtractAggregateData(apiData, [
     'teaching_sessions',
     'teaching_attendance', 
@@ -28,20 +28,22 @@ export default function HomePage() {
     'academic_advising_not_recorded'
   ], 'avg');*/
 
-  const attendancePercentageData = percentageChartData(apiData, 'teaching_attendance', 'teaching_sessions', '% Attendance');
-
+  const attendancePercentageData = percentageAggregateChartData(apiData, 'teaching_attendance', 'teaching_sessions', '% Attendance', 'avg');
+  console.log(attendancePercentageData);
+  //const attendancePercentageData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance'], 'avg');
   //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance', 'teaching_absence', 'teaching_explained_absence'], 'sum');
 
   //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
 
-  const attendancePercentageOptions = ChartOptions('% Attendance', 'Snapshots', 'Quantity');
+  const attendancePercentageOptionsLinear = LinearChartOptions('% Attendance', 'Snapshots', 'Quantity');
+  const attendancePercentageOptionsCircular = CircularChartOptions('% Attendance');
 
     return (
         <div>
             <Container fluid>
               <Row>
-                <Col><Line data={attendancePercentageData} options={attendancePercentageOptions}/></Col>
-                <Col><PolarArea data={attendancePercentageData} options={attendancePercentageOptions}/></Col>
+                <Col><Line data={attendancePercentageData} options={attendancePercentageOptionsLinear}/></Col>
+                <Col><PolarArea data={attendancePercentageData} options={attendancePercentageOptionsCircular}/></Col>
               </Row>
               <Row>
                 <Col></Col>
