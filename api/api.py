@@ -343,7 +343,7 @@ class FilterStudentAPI(Resource):
         # TODO: built array, provide array to query, return query
         query = db.session.query(Student)
         for key in args:
-            if key in student_filters and args[key] is not None:
+            if key in student_filters and args[key] is not None and args[key] != ['']: 
                 if args['like']:
                     query = query.filter(student_filters[key].like(args[key][0]))
                 else:

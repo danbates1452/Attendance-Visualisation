@@ -11,7 +11,6 @@ export default function FetchAPIData(endpoint) {
         if (!response.ok) {
           throw new Error('HTTP Error, Status: ' + response.status);
         }
-        console.log(response);
         return response.json();
       })
       .then((data) => setData(data))
