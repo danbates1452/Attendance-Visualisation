@@ -3,6 +3,8 @@ import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import FetchAPIData from "../helper/fetchApiData";
 import Select from 'react-select';
 import {v4 as uuidv4} from 'uuid';
+import { ExtractChartData, LinearChartOptions } from "../helper/chartHandling";
+import { Line } from "react-chartjs-2";
 
 export default function FiltersPage() {
     const [filters, setFilters] = useState([<TableFilters key="filter" tableName="EMPTY"/>]);
@@ -11,9 +13,9 @@ export default function FiltersPage() {
     const handleSelect = (event) => {setFilters(<TableFilters tableName={event.target.value}/>)};
 
     return(
-        <Container fluid className="p-3">
+        <Container fluid className="pl-3 pr-3 pt-2">
             <Form key={'tableNameSelect'}>
-                <Row className="pb-3">
+                <Row className="pb-1">
                     <Col></Col>
                     <Form.Group as={Col}>
                         <Form.Label htmlFor="tableSelect">Table</Form.Label>
@@ -52,12 +54,32 @@ function objectArrayToStringArray(objectArray) {
     return strArray;
 }
 
+const allSnapshotDatapoints = [
+    'teaching_sessions',
+    'teaching_attendance', 
+    'teaching_explained_absence',
+    'teaching_absence',
+    'assessments',
+    'assessment_submission',
+    'assessment_explained_non_submission',
+    'assessment_non_submission',
+    'assessment_in_late_period',
+    'academic_advising_sessions',
+    'academic_advising_attendance',
+    'academic_advising_explained_absence',
+    'academic_advising_absence',
+    'academic_advising_not_recorded'
+  ];
 function View({type, data={}}) {
     if (data === {} || data === undefined || data[0] === undefined) {type = ''} //clear type and cause switch to default if empty data
     
     switch (type) {
         case 'line':
-            return (<></>); //TODO: complete this chart generation
+            return (
+                <Row>
+                    <Line data={ExtractChartData(data, allSnapshotDatapoints)} options={LinearChartOptions('Filtered Teaching Attendance', 'Sessions Attended', 'Week')}/>
+                </Row>
+            ); //TODO: complete this chart generation
         case 'table':
             return (
                 <Row><Table>
@@ -133,7 +155,8 @@ function TableFilters({tableName}) {
                 break;
             case 'snapshot':
                 setSnapshotViewData(Object.values(data));
-                setSnapshotViewType('table');
+                //setSnapshotViewType('table');
+                setSnapshotViewType('line');
                 break;
             case 'course':
                 setCourseViewData(Object.values(data));
