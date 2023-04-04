@@ -1,6 +1,7 @@
 # Libraries
 from flask import Flask, render_template, request
 from flask_restful import Resource, Api, reqparse
+from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, BigInteger, Boolean, String, Date, DateTime, ForeignKey, cast
 from sqlalchemy.orm import relationship, column_property
@@ -44,6 +45,7 @@ if config['APP_' + environment_type.upper()]:  # if environment type has app con
 
 api = Api(app)
 ma = Marshmallow(app)
+cache = Cache(app)
 
 # Database Setup
 db = SQLAlchemy(app)
@@ -229,22 +231,26 @@ def getAggregateData(
     return output_dict
 
 class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & stage e.g. Computer Science - Year 3
+    @cache.cached()
     def get(self, course_code, stage):
         student_list = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code, stage=stage)).keys()
         return getAggregateData(student_list)
 
 class AggregateCourseAPI(Resource): #aggregated data for a whole course e.g. Computer Science
+    @cache.cached()
     def get(self, course_code):
         #get list of students by their courses (like StudentByCourseAPI)
         student_list = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)).keys()
         return getAggregateData(student_list) 
 
 class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 3
+    @cache.cached(150)
     def get(self, stage):
         student_list = student_query_to_dict(db.session.query(Student).filter_by(stage=stage)).keys()
         return getAggregateData(student_list)
 
 class AggregateDepartmentAPI(Resource): #aggregated data for a whole department (group of courses)
+    @cache.cached(300) #Caching scaled to roughly how often it will need to be updated - a department isn't going to change a lot in 5mins
     def get(self, department):
         # department should be a list of degrees -> TODO: maybe make a table for this when you do UI
         if department.lower() == 'informatics' or department.lower() == 'inf':
@@ -314,6 +320,7 @@ class AggregateDepartmentAPI(Resource): #aggregated data for a whole department 
         return getAggregateData(student_list)
 
 class AggregateSchoolAPI(Resource): #aggregated data for the whole school
+    @cache.cached(600)
     def get(self):
         #while only used in EngInf, just get all data
         student_list = student_query_to_dict(db.session.query(Student).all())
