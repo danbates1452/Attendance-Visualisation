@@ -39,17 +39,15 @@ export default function HomePage() {
   const attendancePercentageOptionsCircular = CircularChartOptions('% Attendance');
 
     return (
-        <div>
-            <Container fluid>
-              <Row>
-                <Col><Line data={attendancePercentageData} options={attendancePercentageOptionsLinear}/></Col>
-                <Col><PolarArea data={attendancePercentageData} options={attendancePercentageOptionsCircular}/></Col>
-              </Row>
-              <Row>
-                <Col></Col>
-                <Col></Col>
-              </Row>
-            </Container>
-        </div>
+        <Container fluid>  
+        <Row>
+          <Col>
+          <Line height={"300px"} data={attendancePercentageData} options={attendancePercentageOptionsLinear}/>
+          </Col>
+          <Col>
+          <PolarArea height={"300px"} data={attendancePercentageData} options={attendancePercentageOptionsCircular}/>
+          </Col>
+        </Row>
+        </Container>
     );
 }

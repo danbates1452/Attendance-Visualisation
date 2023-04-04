@@ -135,6 +135,7 @@ export function ExtractAggregateData(raw, details, subvalue) {
  export function LinearChartOptions(title, xTitle, yTitle) {
     return {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
         tooltip: {
           mode: 'index',
@@ -170,6 +171,7 @@ export function ExtractAggregateData(raw, details, subvalue) {
 export function CircularChartOptions(title) {
   return {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       tooltip: {
         mode: 'index',
