@@ -38,9 +38,6 @@ def try_cast_int(i):
         return None
     return int(i)
 
-#Global Constants
-#date_format = '%Y-%m-%d'
-
 #Schemas - formalises how APIs should return table data
 
 class Snapshot(Schema):

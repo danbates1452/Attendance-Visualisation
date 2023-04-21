@@ -91,7 +91,7 @@ class Course(db.Model):
 class Student(db.Model):
     __tablename__ = 'Student'
     student_id = Column(BigInteger(), primary_key=True, nullable=False)  # doesn't need to autoincrement since we already have an id
-    level = Column(String, nullable=False) # True = Undergraduate, False = Postgraduate Taught
+    level = Column(String, nullable=False) #currently just 'UG' or 'PGT'
     stage = Column(Integer, nullable=False)
     course_code = Column(String, ForeignKey(Course.code), nullable=False) # course_code, One-To-One
     # Relationships
@@ -107,9 +107,6 @@ class StudentByIdAPI(Resource):
         query = db.session.query(Student).filter_by(student_id=student_id).first()
         schema = StudentSchema()
         return schema.dump(query)
-    
-    def put(self, student_id):
-        pass #TODO: check args for all required parts of a student
 
 class StudentByCourseAPI(Resource): #code, not title
     def get(self, course_code):
@@ -120,22 +117,13 @@ class StudentByStageAPI(Resource):
         query = db.session.query(Student).filter_by(stage=stage)
         return student_query_to_dict(query)
 
-class StudentByLevelAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(StudentByLevelAPI, self).__init__()
-    
+class StudentByLevelAPI(Resource):  
     def get(self, level):
-        args = self.reqparse.parse_args()
         level = strtobool(level)
         return row_to_dict(db.session.query(Student).filter_by(level=level))
 
 # Snapshot APIs
 class SnapshotByIdYearSemesterWeekAPI(Resource): #student_id, year, semester, week
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        super(SnapshotByIdYearSemesterWeekAPI, self).__init__()
-    
     def get(self, student_id, year, semester, week):
         query = db.session.query(Snapshot).filter_by(
             student_id=student_id,
@@ -181,7 +169,7 @@ class CoursesAPI(Resource):
         return course_query_to_dict(db.session.query(Course).all())
 
 # Aggregate Data APIs: Strictly Read-Only
-def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
+def format_aggregate_data(query, agg=['min', 'max', 'avg', 'sum']):
     data = {}
     for r, row in enumerate(query):
         row_data = {}
@@ -196,7 +184,7 @@ def formatAggregateData(query, agg=['min', 'max', 'avg', 'sum']):
         data[week] = row_data
     return data
 
-def getAggregateData(
+def get_aggregate_data(
         student_list,
         attributes={
             'teaching_sessions': Snapshot.teaching_sessions,
@@ -227,27 +215,27 @@ def getAggregateData(
             func.avg(attribute).filter(Snapshot.insert_datetime.in_(insert_datetimes)),
             func.sum(attribute).filter(Snapshot.insert_datetime.in_(insert_datetimes))
         ).group_by(cast(Snapshot.insert_datetime, Date), Snapshot.week)
-        output_dict[name] = formatAggregateData(query)
+        output_dict[name] = format_aggregate_data(query)
     return output_dict
 
 class AggregateCourseStageAPI(Resource): #aggregated data for a whole course & stage e.g. Computer Science - Year 3
     @cache.cached()
     def get(self, course_code, stage):
         student_list = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code, stage=stage)).keys()
-        return getAggregateData(student_list)
+        return get_aggregate_data(student_list)
 
 class AggregateCourseAPI(Resource): #aggregated data for a whole course e.g. Computer Science
     @cache.cached()
     def get(self, course_code):
         #get list of students by their courses (like StudentByCourseAPI)
         student_list = student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code)).keys()
-        return getAggregateData(student_list) 
+        return get_aggregate_data(student_list) 
 
 class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 3
     @cache.cached(150)
     def get(self, stage):
         student_list = student_query_to_dict(db.session.query(Student).filter_by(stage=stage)).keys()
-        return getAggregateData(student_list)
+        return get_aggregate_data(student_list)
 
 class AggregateDepartmentAPI(Resource): #aggregated data for a whole department (group of courses)
     @cache.cached(300) #Caching scaled to roughly how often it will need to be updated - a department isn't going to change a lot in 5mins
@@ -317,14 +305,14 @@ class AggregateDepartmentAPI(Resource): #aggregated data for a whole department 
         else:
             return {'message': 'Invalid department'}
         student_list = student_query_to_dict(db.session.query(Student).filter(Student.course_code.in_(course_list)))
-        return getAggregateData(student_list)
+        return get_aggregate_data(student_list)
 
 class AggregateSchoolAPI(Resource): #aggregated data for the whole school
     @cache.cached(600)
     def get(self):
         #while only used in EngInf, just get all data
         student_list = student_query_to_dict(db.session.query(Student).all())
-        return getAggregateData(student_list) 
+        return get_aggregate_data(student_list) 
 
 # Filterable Table-Specific APIs
 student_filters = {
