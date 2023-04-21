@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import FetchAPIData from "../helper/fetchApiData";
 import Select from 'react-select';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { ExtractChartData, LinearChartOptions } from "../helper/chartHandling";
 import { Line } from "react-chartjs-2";
 
@@ -224,18 +224,18 @@ function TableFilters({tableName}) {
                     <Form key={'StudentForm'} onSubmit={handleStudentSubmit}>
                         <Row>
                             <Form.Group as={Col}>
-                                <Form.Label>Student ID</Form.Label>
+                                <Form.Label>Student ID <small>The student's unique identifier</small></Form.Label>
                                 <Select options={studentOptions} onChange={handleStudent_idChange} value={student_id} isMulti isClearable isSearchable/>
     
-                                <Form.Label>Course</Form.Label>
+                                <Form.Label>Course Code <small>The unique identifier for their course</small></Form.Label>
                                 <Select options={courseOptions} onChange={handleCourseChange} value={course} isMulti isClearable isSearchable/>
                             </Form.Group>
     
                             <Form.Group as={Col}>
-                                <Form.Label>Level</Form.Label>
+                                <Form.Label>Level <small>What kind of degree they're doing e.g. Undergrad, Postgrad</small></Form.Label>
                                 <Select options={levelOptions} onChange={handleLevelChange} value={level} isMulti isClearable isSearchable defaultValue={levelOptions}/>
     
-                                <Form.Label>Stage</Form.Label>
+                                <Form.Label>Stage <small>The year of their degree</small></Form.Label>
                                 <Select options={stageOptions} onChange={handleStageChange} value={stage} isMulti isClearable isSearchable defaultValue={stageOptions}/>
                             </Form.Group>
                         </Row>
@@ -260,10 +260,10 @@ function TableFilters({tableName}) {
                     <Form key={'SnapshotForm'} onSubmit={handleSnapshotSubmit}>
                         <Row>
                             <Form.Group as={Col}>
-                                <Form.Label>Student ID</Form.Label>
+                                <Form.Label>Student ID <small>The student's unique identifier</small></Form.Label>
                                 <Select options={studentOptions} onChange={handleStudent_idChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Registration Status</Form.Label>
+                                <Form.Label>Registration Status <small>If the student is registered or withdrawn for a specific reason</small></Form.Label>
                                 <Select options={registrationOptions}  onChange={handleRegistration_statusChange} isMulti isClearable isSearchable/>
                             </Form.Group>
 
@@ -271,10 +271,10 @@ function TableFilters({tableName}) {
                                 <Form.Label>Year</Form.Label>
                                 <Select options={yearOptions}  onChange={handleYearChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Semester</Form.Label>
+                                <Form.Label>Semester <small>Autumn or Spring</small></Form.Label>
                                 <Select options={semesterOptions}  onChange={handleSemesterChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Week</Form.Label>
+                                <Form.Label>Week <small>1-12</small></Form.Label>
                                 <Select options={weekOptions}  onChange={handleWeekChange} isMulti isClearable isSearchable/>
                             </Form.Group>
                         </Row>
@@ -296,12 +296,12 @@ function TableFilters({tableName}) {
                             <Form key={'CourseForm'} onSubmit={handleCourseSubmit}>
                                 <Row>
                                     <Form.Group as={Col}>
-                                        <Form.Label>Course Code</Form.Label>
+                                        <Form.Label>Course Code <small>The unique identifier of the course</small></Form.Label>
                                         <Select options={codeOptions}  onChange={handleCodeChange} isMulti isClearable isSearchable/>
                                     </Form.Group>
                     
                                     <Form.Group as={Col}>
-                                        <Form.Label>Course Title</Form.Label>
+                                        <Form.Label>Course Title <small>The name of the course</small></Form.Label>
                                         <Select options={titleOptions}  onChange={handleTitleChange} isMulti isClearable isSearchable/>
                                     </Form.Group>
                                 </Row>
