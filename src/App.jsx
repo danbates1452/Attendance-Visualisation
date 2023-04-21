@@ -9,7 +9,6 @@ import Root from './routes/root';
 import ErrorPage from './routes/error-page';
 import HomePage from './routes/home-page';
 import FiltersPage from './routes/filters-page';
-import UploadPage from './routes/upload-page';
 import UsersPage from './routes/users-page';
 import DataPage from './routes/data-page';
 import LoginPage from './routes/login-page';
@@ -27,10 +26,6 @@ const router = createBrowserRouter([
       {
         path: '/filters',
         element: <FiltersPage/>
-      },
-      {
-        path: '/upload',
-        element: <UploadPage/>
       },
       {
         path: '/users',

@@ -42,12 +42,13 @@ function Navigation() {
               <Nav className="me-auto">
                 <Nav.Link eventKey="link-1" as={Link} to="/home">Home</Nav.Link>
                 <Nav.Link eventKey="link-2" as={Link} to="/filters">Filters</Nav.Link>
+                {/*
                 <RoleWrapper role={getCurrentUserRole()} allowedRoles={'admin'}>
-                  <Nav.Link eventKey="link-3" as={Link} to="/upload">Upload Data</Nav.Link>
-                  <Nav.Link eventKey="link-4" as={Link} to="/users">User Management</Nav.Link>
-                  <Nav.Link eventKey="link-5"as={Link} to="/data">Data Management</Nav.Link>
+                  <Nav.Link eventKey="link-3" as={Link} to="/users">User Management</Nav.Link>
+                  <Nav.Link eventKey="link-4"as={Link} to="/data">Data Management</Nav.Link>
                 </RoleWrapper>
-                <Nav.Link eventKey="link-6" as={Link} to="/login">Login</Nav.Link>
+                <Nav.Link eventKey="link-5" as={Link} to="/login">Login</Nav.Link>
+                */}
               </Nav>
             </Navbar.Collapse>
           </Container>

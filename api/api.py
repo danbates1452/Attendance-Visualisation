@@ -103,27 +103,32 @@ class Student(db.Model):
 
 # Student APIs
 class StudentByIdAPI(Resource):
+    @cache.cached()
     def get(self, student_id):
         query = db.session.query(Student).filter_by(student_id=student_id).first()
         schema = StudentSchema()
         return schema.dump(query)
 
 class StudentByCourseAPI(Resource): #code, not title
+    @cache.cached()
     def get(self, course_code):
         return student_query_to_dict(db.session.query(Student).filter_by(course_code=course_code))
 
 class StudentByStageAPI(Resource):
+    @cache.cached()
     def get(self, stage):
         query = db.session.query(Student).filter_by(stage=stage)
         return student_query_to_dict(query)
 
 class StudentByLevelAPI(Resource):  
+    @cache.cached()
     def get(self, level):
         level = strtobool(level)
         return row_to_dict(db.session.query(Student).filter_by(level=level))
 
 # Snapshot APIs
 class SnapshotByIdYearSemesterWeekAPI(Resource): #student_id, year, semester, week
+    @cache.cached()
     def get(self, student_id, year, semester, week):
         query = db.session.query(Snapshot).filter_by(
             student_id=student_id,
@@ -134,6 +139,7 @@ class SnapshotByIdYearSemesterWeekAPI(Resource): #student_id, year, semester, we
         return snapshot_query_to_dict(query)
 
 class SnapshotByIdYearSemesterAPI(Resource): #student_id, year, semester
+    @cache.cached()
     def get(self, student_id, year, semester):  
         query = db.session.query(Snapshot).filter_by(
             student_id=student_id,
@@ -143,6 +149,7 @@ class SnapshotByIdYearSemesterAPI(Resource): #student_id, year, semester
         return snapshot_query_to_dict(query)
 
 class SnapshotByIdYearAPI(Resource): #student_id, year
+    @cache.cached()
     def get(self, student_id, year):
         query = db.session.query(Snapshot).filter_by(
             student_id=student_id,
@@ -151,20 +158,24 @@ class SnapshotByIdYearAPI(Resource): #student_id, year
         return snapshot_query_to_dict(query)
 
 class SnapshotByIdOnlyAPI(Resource): #student_id
+    @cache.cached()
     def get(self, student_id):
         query = db.session.query(Snapshot).filter_by(student_id=student_id)
         return snapshot_query_to_dict(query)
 
 # Course APIs
 class CourseByCodeAPI(Resource):
+    @cache.cached()
     def get(self, code):
         return course_query_to_dict(db.session.query(Course).filter_by(code=code))
 
 class CourseByTitleAPI(Resource):
+    @cache.cached()
     def get(self, title):
         return course_query_to_dict(db.session.query(Course).filter_by(title=title))
 
 class CoursesAPI(Resource):
+    @cache.cached()
     def get(self):
         return course_query_to_dict(db.session.query(Course).all())
 
@@ -332,6 +343,7 @@ class FilterStudentAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterStudentAPI, self).__init__()
 
+    @cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         # TODO: if no filters applied, return (a paginated amount of) all students
@@ -381,6 +393,7 @@ class FilterSnapshotAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterSnapshotAPI, self).__init__()
 
+    @cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Snapshot)
@@ -405,6 +418,7 @@ class FilterCourseAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterCourseAPI, self).__init__()
 
+    @cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Course)
