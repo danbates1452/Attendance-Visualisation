@@ -1,6 +1,6 @@
 import { ExtractAggregateData, LinearChartOptions, CircularChartOptions, percentageAggregateChartData } from "../helper/chartHandling";
 import FetchAPIData from "../helper/fetchApiData";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Form } from "react-bootstrap";
 import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
 import { useState } from "react";
 import Select from 'react-select';
@@ -60,20 +60,19 @@ export default function HomePage() {
     apiData = data;
   }
 
-  //default is inf department, percentage attendance
-  //const [selectedStudentGroup, setSelectedStudentGroup] = useState({url:"/api/aggregate/department/informatics", value:'department/informatics', label: "Department of Informatics"});
+  //all states set to defaults
   const [selectedStudentGroup, setSelectedStudentGroup] = useState({url:"", value:'No Student Group Selected', label: "No Student Group Selected"});
 
   var apiData = FetchAPIData(selectedStudentGroup['url']);
-  const [selectedDataset, setSelectedDataset] = useState({datasets: [], labels: []});
-  
-  let lastDatasetOption = {value: 'No Dataset Selected', label: 'No Dataset Selected'};
+  const [selectedDataset, setSelectedDataset] = useState({datasets: [], labels: []}); //the actual chart data
+  const [selectedDatasetOption, setSelectedDatasetOption] = useState({value: 'No Dataset Selected', label: 'No Dataset Selected'}) //the option object
 
-  const [title, setTitle] = useState(selectedStudentGroup['label'] + ": " + lastDatasetOption['label']);
+  const [title, setTitle] = useState(selectedStudentGroup['label'] + ": " + selectedDatasetOption['label']);
   const [linearOptions, setLinearOptions] = useState(LinearChartOptions(title, 'Snapshots', 'Quantity')); 
   const [circularOptions, setCircularOptions] = useState(CircularChartOptions(title)); 
 
-  const handleChartUpdate = (datasetOption) => {
+  const handleChartUpdate = (studentGroup, datasetOption) => {
+    console.log(datasetOption);
     if (datasetOption['value'].includes('percentage')) {
       switch (datasetOption['value']) { //percentages are a bit more custom so need their own switch-case
         case 'percentage_attendance':
@@ -85,73 +84,58 @@ export default function HomePage() {
         case 'percentage_aa_attendance':
           setSelectedDataset(percentageAggregateChartData(apiData, 'academic_advising_attendance', 'academic_advising_sessions', datasetOption['label'], 'avg'));
           break;
+        default: //default case ignored
+          break;
       }
-    } else {
+    } /*else if (dataset) {
+
+    } */else {
       setSelectedDataset(ExtractAggregateData(apiData, [datasetOption['value']], 'avg'));
     }
-    let newTitle = selectedStudentGroup['label'] + ": " + datasetOption['label'];
+    const newTitle = studentGroup['label'] + ": " + datasetOption['label'];
     setTitle(newTitle);
     setLinearOptions(LinearChartOptions(newTitle, 'Snapshots', 'Quantity'));
     setCircularOptions(CircularChartOptions(newTitle));
-    lastDatasetOption = datasetOption;
   };
 
   const handleStudentGroupSelect = (selectedOption) => {
-    let newStudentGroupURL = '/api/aggregate/' + selectedOption['value'];
-    setSelectedStudentGroup({url:newStudentGroupURL, value: selectedOption['value'], label: selectedOption['label']});
+    const newStudentGroupURL = '/api/aggregate/' + selectedOption['value'];
+    const newStudentGroup = {url:newStudentGroupURL, value: selectedOption['value'], label: selectedOption['label']};
+    setSelectedStudentGroup(newStudentGroup);
     refreshApiData(newStudentGroupURL); //refresh api data
-    handleChartUpdate(lastDatasetOption); //refresh chart data and cause charts to update
+    handleChartUpdate(newStudentGroup, selectedDatasetOption); //refresh chart data and cause charts to update
   };
   const handleDatasetSelect = (selectedOption) => { 
-    handleChartUpdate(selectedOption);
+    setSelectedDatasetOption(selectedOption);
+    handleChartUpdate(selectedStudentGroup, selectedOption);
   };
-  //const student_id = 43437412;
-  //const apiData = FetchAPIData('/api/snapshot/' + student_id);
-  //const apiData = FetchAPIData('/api/aggregate/course/G5001U');
-  //const chartData = ExtractChartData(apiData, ['teaching_attendance', 'teaching_absence']);
-  /*const chartData = ExtractAggregateData(apiData, [
-    'teaching_sessions',
-    'teaching_attendance', 
-    'teaching_explained_absence',
-    'teaching_absence',
-    'assessments',
-    'assessment_submission',
-    'assessment_explained_non_submission',
-    'assessment_non_submission',
-    'assessment_in_late_period',
-    'academic_advising_sessions',
-    'academic_advising_attendance',
-    'academic_advising_explained_absence',
-    'academic_advising_absence',
-    'academic_advising_not_recorded'
-  ], 'avg');*/
-  //const attendancePercentageData = percentageAggregateChartData(apiData, 'teaching_attendance', 'teaching_sessions', '% Attendance', 'avg');
-  //console.log(attendancePercentageData);
-  //const attendancePercentageData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance'], 'avg');
-  //const chartData = ExtractAggregateData(apiData, ['teaching_sessions', 'teaching_attendance', 'teaching_absence', 'teaching_explained_absence'], 'sum');
-  //const chartOptions = ChartOptions('Attendance vs Absence for ' + student_id, 'Snapshots', 'Quantity');
-  //const attendancePercentageOptionsLinear = LinearChartOptions('% Attendance', 'Snapshots', 'Quantity');
-  //const attendancePercentageOptionsCircular = CircularChartOptions('% Attendance');
-    return (
-        <Container fluid>
-        <Select options={studentGroupOptions()} onChange={handleStudentGroupSelect} isClearable isSearchable/>
-        <Select options={datasetOptions()} onChange={handleDatasetSelect} isClearable isSearchable/>
-        <Row>
-          <Col>
-            <Line height={"300px"} data={selectedDataset} options={linearOptions}/>
-          </Col>
-          <Col>
-            <PolarArea height={"300px"} data={selectedDataset} options={circularOptions}/>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
-            <Pie height={"300px"} data={selectedDataset} options={circularOptions}/>
-          </Col>
-          <Col>
-            <Bar height={"300px"} data={selectedDataset} options={linearOptions}/>
-          </Col>
-        </Row>
-        </Container>
-    );
+
+  return (
+    <Container fluid>
+      <Row className={"p-2"}>
+        <Form.Group as={Col}>
+          <Select options={studentGroupOptions()} onChange={handleStudentGroupSelect} placeholder={"Select a Student Group"} isClearable isSearchable/>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Select options={datasetOptions()} onChange={handleDatasetSelect} placeholder={"Select a Dataset"} isClearable isSearchable/>
+        </Form.Group>
+      </Row>      
+      <Row>
+        <Col>
+          <Line height={"300px"} data={selectedDataset} options={linearOptions}/>
+        </Col>
+        <Col>
+          <PolarArea height={"300px"} data={selectedDataset} options={circularOptions}/>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Pie height={"300px"} data={selectedDataset} options={circularOptions}/>
+        </Col>
+        <Col>
+          <Bar height={"300px"} data={selectedDataset} options={linearOptions}/>
+        </Col>
+      </Row>
+    </Container>
+  );
 }
