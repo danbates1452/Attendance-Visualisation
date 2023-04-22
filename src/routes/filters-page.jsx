@@ -63,7 +63,6 @@ const allSnapshotDatapoints = [
     'assessment_submission',
     'assessment_explained_non_submission',
     'assessment_non_submission',
-    'assessment_in_late_period',
     'academic_advising_sessions',
     'academic_advising_attendance',
     'academic_advising_explained_absence',
