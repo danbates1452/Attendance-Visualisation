@@ -1,8 +1,6 @@
 import ColorHash from "color-hash";
 const colorHash = new ColorHash();
 
-const borderColor = 'CCCCCC44';
-
 function getTranslucentColorHash(string) {
   return colorHash.hex(string) + '99';
 }

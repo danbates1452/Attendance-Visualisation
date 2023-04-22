@@ -76,7 +76,7 @@ function View({type, data={}}) {
         case 'line':
             return (
                 <Row>
-                    <Line data={ExtractChartData(data, allSnapshotDatapoints)} options={LinearChartOptions('Filtered Teaching Attendance', 'Sessions Attended', 'Week')}/>
+                    <Line data={ExtractChartData(data, allSnapshotDatapoints)} options={LinearChartOptions('All Fields', 'Snapshot', 'Quantity')}/>
                 </Row>
             ); //TODO: complete this chart generation
         case 'table':
@@ -112,6 +112,13 @@ function TableFilters({tableName}) {
     //snapshot view
     const [snapshotViewType, setSnapshotViewType] = useState('');
     const [snapshotViewData, setSnapshotViewData] = useState({});
+    const handleToggleSnapshotView = () => { //toggle snapshot view type
+        if (snapshotViewType === 'table') {
+            setSnapshotViewType('line')
+        } else if (snapshotViewType === 'line') {
+            setSnapshotViewType('table')
+        }
+    };
     //course view
     const [courseViewType, setCourseViewType] = useState('');
     const [courseViewData, setCourseViewData] = useState({});
@@ -259,11 +266,19 @@ function TableFilters({tableName}) {
                     <Form key={'SnapshotForm'} onSubmit={handleSnapshotSubmit}>
                         <Row>
                             <Form.Group as={Col}>
-                                <Form.Label>Student ID <small>The student's unique identifier</small></Form.Label>
+                                <Form.Label>Student ID <small>The student's unique identifier. {snapshotViewType === 'line' ? "Recommended to use a single one for Line chart mode." : ""}</small></Form.Label>
                                 <Select options={studentOptions} onChange={handleStudent_idChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Registration Status <small>If the student is registered or withdrawn for a specific reason</small></Form.Label>
-                                <Select options={registrationOptions}  onChange={handleRegistration_statusChange} isMulti isClearable isSearchable/>
+                                <Form.Label>Registration Status <small>If the student is registered or withdrawn for a specific reason.</small></Form.Label>
+                                <Select options={registrationOptions} onChange={handleRegistration_statusChange} isMulti isClearable isSearchable/>
+
+                                <div className="p-2 pt-4">
+                                    <Form.Label className="pe-2">Switch your view <small>once you've set a filter</small></Form.Label>
+                                    <Button variant={snapshotViewType === 'table' ? "success" : "primary" } onClick={handleToggleSnapshotView}>
+                                        {snapshotViewType === 'table' ? "View as Line Chart" : "View as Table" }
+                                    </Button>
+                                </div>
+                                
                             </Form.Group>
 
                             <Form.Group as={Col}>
@@ -273,7 +288,7 @@ function TableFilters({tableName}) {
                                 <Form.Label>Semester <small>(Autumn or Spring)</small></Form.Label>
                                 <Select options={semesterOptions}  onChange={handleSemesterChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Week <small>(1-12)</small></Form.Label>
+                                <Form.Label>Week <small>(1-12) {snapshotViewType === 'line' ? "Best left unset in Line chart mode." : ""}</small></Form.Label>
                                 <Select options={weekOptions}  onChange={handleWeekChange} isMulti isClearable isSearchable/>
                             </Form.Group>
                         </Row>
