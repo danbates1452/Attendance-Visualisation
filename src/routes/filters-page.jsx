@@ -231,10 +231,10 @@ function TableFilters({tableName}) {
                             </Form.Group>
     
                             <Form.Group as={Col}>
-                                <Form.Label>Level <small>What kind of degree they're doing e.g. Undergrad, Postgrad</small></Form.Label>
+                                <Form.Label>Level <small>Type of degree e.g. Undergrad, Postgrad</small></Form.Label>
                                 <Select options={levelOptions} onChange={handleLevelChange} value={level} isMulti isClearable isSearchable defaultValue={levelOptions}/>
     
-                                <Form.Label>Stage <small>The year of their degree</small></Form.Label>
+                                <Form.Label>Stage <small>'years into' the degree</small></Form.Label>
                                 <Select options={stageOptions} onChange={handleStageChange} value={stage} isMulti isClearable isSearchable defaultValue={stageOptions}/>
                             </Form.Group>
                         </Row>
@@ -270,10 +270,10 @@ function TableFilters({tableName}) {
                                 <Form.Label>Year</Form.Label>
                                 <Select options={yearOptions}  onChange={handleYearChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Semester <small>Autumn or Spring</small></Form.Label>
+                                <Form.Label>Semester <small>(Autumn or Spring)</small></Form.Label>
                                 <Select options={semesterOptions}  onChange={handleSemesterChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Week <small>1-12</small></Form.Label>
+                                <Form.Label>Week <small>(1-12)</small></Form.Label>
                                 <Select options={weekOptions}  onChange={handleWeekChange} isMulti isClearable isSearchable/>
                             </Form.Group>
                         </Row>
