@@ -3,6 +3,9 @@ export default function DataPage() {
         <div>
             DATA MANAGEMENT UI
 
+            &&
+            Upload Data
+            Link into excel_import.py via API (write a post function)
         </div>
     );
 }
