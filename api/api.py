@@ -343,7 +343,7 @@ class FilterStudentAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterStudentAPI, self).__init__()
 
-    @cache.cached()
+    #@cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         # TODO: if no filters applied, return (a paginated amount of) all students
@@ -393,7 +393,7 @@ class FilterSnapshotAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterSnapshotAPI, self).__init__()
 
-    @cache.cached()
+    #@cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Snapshot)
@@ -418,7 +418,7 @@ class FilterCourseAPI(Resource):
             self.reqparse.add_argument(name, action='append', required=False, location='args') 
         super(FilterCourseAPI, self).__init__()
 
-    @cache.cached()
+    #@cache.cached()
     def get(self):
         args = self.reqparse.parse_args()
         query = db.session.query(Course)

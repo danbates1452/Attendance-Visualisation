@@ -1,8 +1,6 @@
 import React from 'react';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
-//import logo from './logo.svg';
 import './App.css';
-//import {Bar, Line, Pie, Doughnut, PolarArea, Radar, Scatter, Bubble} from 'react-chartjs-2';
 import {Chart as ChartJS} from 'chart.js/auto'; //must import for charts to render
 
 import Root from './routes/root';
@@ -42,10 +40,6 @@ const router = createBrowserRouter([
     ]
   }
 ]);
-
-function percentage(total, part) {
-  return (part / total) * 100
-}
 
 function App() {
   return (
