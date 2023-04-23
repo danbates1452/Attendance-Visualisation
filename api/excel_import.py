@@ -1,5 +1,5 @@
 # import data from excel, sanitize and ready it to be inserted into the database
-# todo: allow a user to upload it within the application then insert it in
+# TODO: allow a user to upload it within the application then insert it in
 # external imports
 import pandas as pd
 import numpy as np
@@ -10,10 +10,10 @@ from helper_methods import *
 # student
 def excel_to_db(filename, db, year, semester, week):
     from api import Student, Snapshot, Course # avoiding mutual import issues by importing classes only here
-    # todo: check if file exists - throw exception if not, or if there is an issue in reading
+    # TODO: check if file exists - throw exception if not, or if there is an issue in reading
     df = pd.read_excel(get_absolute_path(filename))
 
-    # todo: Validation
+    # TODO: Validation
     df = df.dropna(how='all')  # drop any fully empty rows (at the top in sample_data)
     # by default pandas fillna doesn't seem to cover NaT values so this works around it
     df = df.replace({float('nan'): None, np.datetime64('nat'): None})
@@ -116,4 +116,4 @@ def excel_to_db(filename, db, year, semester, week):
             db.session.add(new_snapshot)
 
         db.session.commit()  # Commit Changes to DB
-        # todo: add a try-except here down the line
+        # maybe: add a try-except here down the line

@@ -6,7 +6,7 @@ import { useState } from "react";
 import Select from 'react-select';
 
 function studentGroupOptions() {
-  //TODO: populate automatically with courses and stages, then add manually departments and the school as a whole
+  //populate automatically with courses and stages, then add manually departments and the school as a whole
 
   var optionsObj = [
     {value: "school", label: "School of Engineering and Informatics"},
@@ -16,7 +16,7 @@ function studentGroupOptions() {
 
   //populate list
 
-  const stages = [1, 2, 3, 4, 5]; //TODO: implement this with '/api/filter_options/snapshot' endpoint
+  const stages = [1, 2, 3, 4, 5]; //maybe: implement this with '/api/filter_options/snapshot' endpoint
   for (let key in stages) {
     optionsObj.push({value: "stage/" + stages[key], label: "Stage " + stages[key]})
   };

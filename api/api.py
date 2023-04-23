@@ -251,7 +251,7 @@ class AggregateStageAPI(Resource): #aggregated data for a whole stage e.g. Year 
 class AggregateDepartmentAPI(Resource): #aggregated data for a whole department (group of courses)
     @cache.cached(300) #Caching scaled to roughly how often it will need to be updated - a department isn't going to change a lot in 5mins
     def get(self, department):
-        # department should be a list of degrees -> TODO: maybe make a table for this when you do UI
+        # department should be a list of degrees -> maybe make a table for this when you do data management UI
         if department.lower() == 'informatics' or department.lower() == 'inf':
             course_list = [
                 'G4010U',
@@ -330,9 +330,9 @@ student_filters = {
     'student_id': Student.student_id,
     'level': Student.level,
     'stage': Student.stage,
-    'course_code': Student.course_code #TODO: could probably add course title to this too via an extra db request
-    # TODO: add insert date, modified last date once they're in the db
-    # TODO: (COULD) add stuff like 'registration status' and others based on most recent snapshot
+    'course_code': Student.course_code #maybe: could probably add course title to this too via an extra db request
+    # maybe: add insert date, modified last date once they're in the db
+    # maybe: add stuff like 'registration status' and others based on most recent snapshot
 }
 class FilterStudentAPI(Resource):
     def __init__(self):
@@ -347,7 +347,6 @@ class FilterStudentAPI(Resource):
     def get(self):
         args = self.reqparse.parse_args()
         # TODO: if no filters applied, return (a paginated amount of) all students
-        # TODO: built array, provide array to query, return query
         query = db.session.query(Student)
         for key in args:
             if key in student_filters and args[key] is not None and args[key] != ['']: 
@@ -364,8 +363,6 @@ snapshot_filters = {
     'week': Snapshot.week,
     'insert_datetime': Snapshot.insert_datetime,
     'registration_status': Snapshot.registration_status,
-    # TODO: do I want the below to be filterable as they are the data that we'll want to be pulling out
-    # could allow for bias, 
     #'teaching_sessions': Snapshot.teaching_sessions,
     #'teaching_attendance': Snapshot.teaching_attendance,
     #'teaching_explained_absence': Snapshot.teaching_explained_absence,
@@ -439,7 +436,7 @@ class FilterOptionsAPI(Resource):
         elif table_name == 'course':
             filters = course_filters
         else:
-            return None #TODO: figure out a better return for this
+            return None
         
         filters_out = {}
         for key, value in filters.items():

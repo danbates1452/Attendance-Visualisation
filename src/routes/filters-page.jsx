@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import FetchAPIData from "../helper/fetchApiData";
 import Select from 'react-select';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import { ExtractChartData, LinearChartOptions } from "../helper/chartHandling";
 import { Line } from "react-chartjs-2";
 
@@ -63,6 +63,7 @@ const allSnapshotDatapoints = [
     'assessment_submission',
     'assessment_explained_non_submission',
     'assessment_non_submission',
+    'assessment_in_late_period',
     'academic_advising_sessions',
     'academic_advising_attendance',
     'academic_advising_explained_absence',
@@ -76,9 +77,9 @@ function View({type, data={}}) {
         case 'line':
             return (
                 <Row>
-                    <Line data={ExtractChartData(data, allSnapshotDatapoints)} options={LinearChartOptions('All Fields', 'Snapshot', 'Quantity')}/>
+                    <Line data={ExtractChartData(data, allSnapshotDatapoints)} options={LinearChartOptions('Filtered Teaching Attendance', 'Sessions Attended', 'Week')}/>
                 </Row>
-            ); //TODO: complete this chart generation
+            );
         case 'table':
             return (
                 <Row><Table>
@@ -112,13 +113,6 @@ function TableFilters({tableName}) {
     //snapshot view
     const [snapshotViewType, setSnapshotViewType] = useState('');
     const [snapshotViewData, setSnapshotViewData] = useState({});
-    const handleToggleSnapshotView = () => { //toggle snapshot view type
-        if (snapshotViewType === 'table') {
-            setSnapshotViewType('line')
-        } else if (snapshotViewType === 'line') {
-            setSnapshotViewType('table')
-        }
-    };
     //course view
     const [courseViewType, setCourseViewType] = useState('');
     const [courseViewData, setCourseViewData] = useState({});
@@ -217,7 +211,7 @@ function TableFilters({tableName}) {
 
     let studentOptions;
     switch (tableName) {
-        case 'student': //TODO: pull all course codes and titles (display as "CODE - TITLE") for selection
+        case 'student': //pull all course codes and titles (display as "CODE - TITLE") for selection
             let fetchStudentOptions = FetchAPIData('/api/filter_options/student');
     
             studentOptions = optionArrayToObjectArray(fetchStudentOptions['student_id']);
@@ -230,18 +224,18 @@ function TableFilters({tableName}) {
                     <Form key={'StudentForm'} onSubmit={handleStudentSubmit}>
                         <Row>
                             <Form.Group as={Col}>
-                                <Form.Label>Student ID <small>The student's unique identifier</small></Form.Label>
+                                <Form.Label>Student ID</Form.Label>
                                 <Select options={studentOptions} onChange={handleStudent_idChange} value={student_id} isMulti isClearable isSearchable/>
     
-                                <Form.Label>Course Code <small>The unique identifier for their course</small></Form.Label>
+                                <Form.Label>Course</Form.Label>
                                 <Select options={courseOptions} onChange={handleCourseChange} value={course} isMulti isClearable isSearchable/>
                             </Form.Group>
     
                             <Form.Group as={Col}>
-                                <Form.Label>Level <small>Type of degree e.g. Undergrad, Postgrad</small></Form.Label>
+                                <Form.Label>Level</Form.Label>
                                 <Select options={levelOptions} onChange={handleLevelChange} value={level} isMulti isClearable isSearchable defaultValue={levelOptions}/>
     
-                                <Form.Label>Stage <small>'years into' the degree</small></Form.Label>
+                                <Form.Label>Stage</Form.Label>
                                 <Select options={stageOptions} onChange={handleStageChange} value={stage} isMulti isClearable isSearchable defaultValue={stageOptions}/>
                             </Form.Group>
                         </Row>
@@ -266,29 +260,21 @@ function TableFilters({tableName}) {
                     <Form key={'SnapshotForm'} onSubmit={handleSnapshotSubmit}>
                         <Row>
                             <Form.Group as={Col}>
-                                <Form.Label>Student ID <small>The student's unique identifier. {snapshotViewType === 'line' ? "Recommended to use a single one for Line chart mode." : ""}</small></Form.Label>
+                                <Form.Label>Student ID</Form.Label>
                                 <Select options={studentOptions} onChange={handleStudent_idChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Registration Status <small>If the student is registered or withdrawn for a specific reason.</small></Form.Label>
-                                <Select options={registrationOptions} onChange={handleRegistration_statusChange} isMulti isClearable isSearchable/>
-
-                                <div className="p-2 pt-4">
-                                    <Form.Label className="pe-2">Switch your view <small>once you've set a filter</small></Form.Label>
-                                    <Button variant={snapshotViewType === 'table' ? "success" : "primary" } onClick={handleToggleSnapshotView}>
-                                        {snapshotViewType === 'table' ? "View as Line Chart" : "View as Table" }
-                                    </Button>
-                                </div>
-                                
+                                <Form.Label>Registration Status</Form.Label>
+                                <Select options={registrationOptions}  onChange={handleRegistration_statusChange} isMulti isClearable isSearchable/>
                             </Form.Group>
 
                             <Form.Group as={Col}>
                                 <Form.Label>Year</Form.Label>
                                 <Select options={yearOptions}  onChange={handleYearChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Semester <small>(Autumn or Spring)</small></Form.Label>
+                                <Form.Label>Semester</Form.Label>
                                 <Select options={semesterOptions}  onChange={handleSemesterChange} isMulti isClearable isSearchable/>
 
-                                <Form.Label>Week <small>(1-12) {snapshotViewType === 'line' ? "Best left unset in Line chart mode." : ""}</small></Form.Label>
+                                <Form.Label>Week</Form.Label>
                                 <Select options={weekOptions}  onChange={handleWeekChange} isMulti isClearable isSearchable/>
                             </Form.Group>
                         </Row>
@@ -310,12 +296,12 @@ function TableFilters({tableName}) {
                             <Form key={'CourseForm'} onSubmit={handleCourseSubmit}>
                                 <Row>
                                     <Form.Group as={Col}>
-                                        <Form.Label>Course Code <small>The unique identifier of the course</small></Form.Label>
+                                        <Form.Label>Course Code</Form.Label>
                                         <Select options={codeOptions}  onChange={handleCodeChange} isMulti isClearable isSearchable/>
                                     </Form.Group>
                     
                                     <Form.Group as={Col}>
-                                        <Form.Label>Course Title <small>The name of the course</small></Form.Label>
+                                        <Form.Label>Course Title</Form.Label>
                                         <Select options={titleOptions}  onChange={handleTitleChange} isMulti isClearable isSearchable/>
                                     </Form.Group>
                                 </Row>
