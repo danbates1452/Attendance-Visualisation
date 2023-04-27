@@ -1,4 +1,4 @@
-import { ExtractAggregateData, LinearChartOptions, CircularChartOptions, percentageAggregateChartData } from "../helper/chartHandling";
+import { ExtractAggregateData, LinearChartOptions, CircularChartOptions, PercentageAggregateChartData } from "../helper/chartHandling";
 import FetchAPIData from "../helper/fetchApiData";
 import { Container, Row, Col, Form } from "react-bootstrap";
 import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
@@ -76,13 +76,13 @@ export default function HomePage() {
     if (datasetOption['value'].includes('percentage')) {
       switch (datasetOption['value']) { //percentages are a bit more custom so need their own switch-case
         case 'percentage_attendance':
-          setSelectedDataset(percentageAggregateChartData(apiData, 'teaching_attendance', 'teaching_sessions', datasetOption['label'], 'avg'));
+          setSelectedDataset(PercentageAggregateChartData(apiData, 'teaching_attendance', 'teaching_sessions', datasetOption['label'], 'avg'));
           break;
         case 'percentage_submitted':
-          setSelectedDataset(percentageAggregateChartData(apiData, 'assessment_submission', 'assessments', datasetOption['label'], 'avg'));
+          setSelectedDataset(PercentageAggregateChartData(apiData, 'assessment_submission', 'assessments', datasetOption['label'], 'avg'));
           break;
         case 'percentage_aa_attendance':
-          setSelectedDataset(percentageAggregateChartData(apiData, 'academic_advising_attendance', 'academic_advising_sessions', datasetOption['label'], 'avg'));
+          setSelectedDataset(PercentageAggregateChartData(apiData, 'academic_advising_attendance', 'academic_advising_sessions', datasetOption['label'], 'avg'));
           break;
         default: //default case ignored
           break;
