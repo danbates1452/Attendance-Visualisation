@@ -44,60 +44,8 @@ export function ExtractChartData(raw, details, subvalue='None') {
       labels: labels,
       datasets: datasets,
     }
-  }
-
-export function percentageChartData(raw, numerator, denominator, name, subvalue='None') {
-  let labels = [];
-  let data = [];
-
-  for (let key in raw) { //top level e.g. list of snapshots
-    labels.push('Week ' + raw[key]['week']);
-    let numeratorValue, denominatorValue;
-    if (subvalue === 'None') {
-      numeratorValue = Number(raw[key][numerator]);
-      denominatorValue = Number(raw[key][denominator]);
-    } else {
-      numeratorValue = Number(raw[key][numerator][subvalue]);
-      denominatorValue = Number(raw[key][denominator][subvalue]);
-    }
-    if (numeratorValue !== 0 && denominatorValue !== 0) {
-      const percentage = (numeratorValue / denominatorValue) * 100;
-      data.push(percentage);
-    } else {
-      data.push(0);
-    }
-  }
-  
-  return {
-    labels: labels,
-    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
-  }
 }
 
-export function percentageAggregateChartData(raw, numerator, denominator, name, subvalue='None') {
-  let labels = [];
-  let data = [];
-
-  for (let week in raw[numerator]) { //only need to loop for numerator as denominator should have the same number of weeks
-    labels.push('Week ' + week);
-
-    const numeratorValue = Number(raw[numerator][week][subvalue]);
-    const denominatorValue = Number(raw[denominator][week][subvalue]);
-
-    if (numeratorValue !== 0 && denominatorValue !== 0) {
-      const percentage = (numeratorValue / denominatorValue) * 100;
-      data.push(percentage);
-    } else {
-      data.push(0);
-    }
-  }
-  
-  return {
-    labels: labels,
-    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
-  }
-}
-  
 export function ExtractAggregateData(raw, details, subvalue) {
     let labels = [];
     let extractedDetails = {};
@@ -128,8 +76,60 @@ export function ExtractAggregateData(raw, details, subvalue) {
       datasets: datasets,
     }
     
+}
+
+export function PercentageChartData(raw, numerator, denominator, name, subvalue='None') {
+  let labels = [];
+  let data = [];
+
+  for (let key in raw) { //top level e.g. list of snapshots
+    labels.push('Week ' + raw[key]['week']);
+    let numeratorValue, denominatorValue;
+    if (subvalue === 'None') {
+      numeratorValue = Number(raw[key][numerator]);
+      denominatorValue = Number(raw[key][denominator]);
+    } else {
+      numeratorValue = Number(raw[key][numerator][subvalue]);
+      denominatorValue = Number(raw[key][denominator][subvalue]);
+    }
+    if (numeratorValue !== 0 && denominatorValue !== 0) {
+      const percentage = (numeratorValue / denominatorValue) * 100;
+      data.push(percentage);
+    } else {
+      data.push(0);
+    }
   }
   
+  return {
+    labels: labels,
+    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
+  }
+}
+
+export function PercentageAggregateChartData(raw, numerator, denominator, name, subvalue='None') {
+  let labels = [];
+  let data = [];
+
+  for (let week in raw[numerator]) { //only need to loop for numerator as denominator should have the same number of weeks
+    labels.push('Week ' + week);
+
+    const numeratorValue = Number(raw[numerator][week][subvalue]);
+    const denominatorValue = Number(raw[denominator][week][subvalue]);
+
+    if (numeratorValue !== 0 && denominatorValue !== 0) {
+      const percentage = (numeratorValue / denominatorValue) * 100;
+      data.push(percentage);
+    } else {
+      data.push(0);
+    }
+  }
+  
+  return {
+    labels: labels,
+    datasets: [{label: name, data: data, backgroundColor: backgroundColorArray(labels), borderColor: getTranslucentColorHash(name)}],
+  }
+}
+
  export function LinearChartOptions(title, xTitle, yTitle) {
     return {
       responsive: true,
@@ -163,7 +163,7 @@ export function ExtractAggregateData(raw, details, subvalue) {
         }
       }
     }
-  }
+}
 
 //essentially the same as linear chart options but without enforced scales
 export function CircularChartOptions(title) {
