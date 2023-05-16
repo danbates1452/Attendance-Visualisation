@@ -1,8 +1,22 @@
 # Attendance-Visualisation
 My Dissertation Project on *Attendance Monitoring Visualisation*, at the University of Sussex (2023).
 
-## Motivations
-As university attendance rates continue to soar, the number of staff checking up on student attendance has stayed roughly the same. Sussex experiences this just as much as other universities, and as such, there is space/need for more powerful tool to visualise and filter attendance data.
+## Abstract
+This project investigates a prototype solution to the growing problem of tracking
+university attendance. This is motivated by the link between attendance and
+attainment in higher education, since keeping track of students who may be
+falling behind and addressing the reasons for this, is likely to yield greater
+attainment and improve student experience. There is currently no widely available
+open-source attendance-tracker, nor an option widely in use for the University
+of Sussex, as most solutions are bespoke tailored options hidden behind paywalls
+and consulting. This project seeks to produce a three-tier application to store
+attendance monitoring data for visualisation to key university attendance monitoring
+staff. The projects objectives were generally achieved, but there is still further
+work to be done in this area.
+Functionality produced during this project includes a Flask API with a variety
+of endpoints for retrieving attendance monitoring data from a PostgreSQL
+Database, and a ReactJS Front-end that presents several visualisations and
+options to filter this data.
 
 ## Installation
 Note: Requires Node.js and Python3
