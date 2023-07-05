@@ -1,6 +1,14 @@
 # Attendance-Visualisation
 My Dissertation Project on *Attendance Monitoring Visualisation*, at the University of Sussex (2023).
 
+Marks achieved:
+- Interim Report: 68/100
+- Project (Final Report and Codebase): 67/100
+- Presentation: 66/100
+- **Overall**: 67/100
+
+See Section 8 (Conclusion) of the Final Report (under `/documents`), for a discussion of where this project did and did not meet its requirements.
+
 ## Abstract
 This project investigates a prototype solution to the growing problem of tracking
 university attendance. This is motivated by the link between attendance and
